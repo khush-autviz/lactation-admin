@@ -19,10 +19,15 @@ import AppLayout from "./layout/AppLayout";
 import { ScrollToTop } from "./components/common/ScrollToTop";
 import Home from "./pages/Dashboard/Home";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
+import OtpScreen from "./components/auth/OtpScreen";
+import {QueryClient, QueryClientProvider} from '@tanstack/react-query'
 
 export default function App() {
+
+  const queryClient = new QueryClient()
+
   return (
-    <>
+    <QueryClientProvider client={queryClient}>
       <Router>
         <ScrollToTop />
         <Routes>
@@ -63,11 +68,13 @@ export default function App() {
           {/* Auth Layout */}
           <Route path="/signin" element={<SignIn />} />
           <Route path="/signup" element={<SignUp />} />
+          <Route path="/otp" element={<OtpScreen />} />
 
           {/* Fallback Route */}
           <Route path="*" element={<NotFound />} />
         </Routes>
       </Router>
-    </>
+      {/* NOt added react query devtools */}
+    </QueryClientProvider>
   );
 }
