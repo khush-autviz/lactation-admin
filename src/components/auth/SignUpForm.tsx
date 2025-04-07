@@ -1,16 +1,50 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router";
-import { ChevronLeftIcon, EyeCloseIcon, EyeIcon } from "../../icons";
+// import { ChevronLeftIcon, EyeCloseIcon, EyeIcon } from "../../icons";
 import Label from "../form/Label";
 import Input from "../form/input/InputField";
 import Checkbox from "../form/input/Checkbox";
+import axios from "axios";
 
 export default function SignUpForm() {
-  const [showPassword, setShowPassword] = useState(false);
   const [isChecked, setIsChecked] = useState(false);
+  const [tenants, setTenants] = useState<any[]>([]);
+  const [formData, setformData] = useState({
+    company_name: "",
+    tenant_type: "",
+    email: "",
+    contact_number: "",
+    admin_first_name: "",
+    admin_last_name: "",
+    admin_position: "",
+    domain_url: "",
+  });
+
+  useEffect(() => {
+    const fetchTenant = async () => {
+      const response = await axios.get(
+        "http://localhost:8000/public/tenant-types/"
+      );
+      setTenants(response.data);
+    };
+    fetchTenant();
+  }, []);
+
+  const handleFormChange = (e: any) => {
+    const { name, value } = e.target;
+    setformData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleRegistration = async (e:any) => {
+    e.preventDefault()
+    // const response = await axios.post("http://localhost:8000/public/register/", formData)
+    console.log("syubmiy");
+    
+  }
+
   return (
     <div className="flex flex-col flex-1 w-full overflow-y-auto lg:w-1/2 no-scrollbar">
-      <div className="w-full max-w-md mx-auto mb-5 sm:pt-10">
+      {/* <div className="w-full max-w-md mx-auto mb-5 sm:pt-10">
         <Link
           to="/"
           className="inline-flex items-center text-sm text-gray-500 transition-colors hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
@@ -18,19 +52,19 @@ export default function SignUpForm() {
           <ChevronLeftIcon className="size-5" />
           Back to dashboard
         </Link>
-      </div>
+      </div> */}
       <div className="flex flex-col justify-center flex-1 w-full max-w-md mx-auto">
         <div>
-          <div className="mb-5 sm:mb-8">
+          <div className="mb-5 sm:mb-4">
             <h1 className="mb-2 font-semibold text-gray-800 text-title-sm dark:text-white/90 sm:text-title-md">
-              Sign Up
+              Register your Organisation
             </h1>
             <p className="text-sm text-gray-500 dark:text-gray-400">
               Enter your email and password to sign up!
             </p>
           </div>
           <div>
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-5">
+            {/* <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-5">
               <button className="inline-flex items-center justify-center gap-3 py-3 text-sm font-normal text-gray-700 transition-colors bg-gray-100 rounded-lg px-7 hover:bg-gray-200 hover:text-gray-800 dark:bg-white/5 dark:text-white/90 dark:hover:bg-white/10">
                 <svg
                   width="20"
@@ -71,8 +105,8 @@ export default function SignUpForm() {
                 </svg>
                 Sign up with X
               </button>
-            </div>
-            <div className="relative py-3 sm:py-5">
+            </div> */}
+            {/* <div className="relative py-3 sm:py-5">
               <div className="absolute inset-0 flex items-center">
                 <div className="w-full border-t border-gray-200 dark:border-gray-800"></div>
               </div>
@@ -81,7 +115,7 @@ export default function SignUpForm() {
                   Or
                 </span>
               </div>
-            </div>
+            </div> */}
             <form>
               <div className="space-y-5">
                 <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
@@ -92,9 +126,10 @@ export default function SignUpForm() {
                     </Label>
                     <Input
                       type="text"
-                      id="fname"
-                      name="fname"
-                      placeholder="Enter your first name"
+                      placeholder="Enter your company first name"
+                      name="admin_first_name"
+                      value={formData.admin_first_name}
+                      onChange={handleFormChange}
                     />
                   </div>
                   {/* <!-- Last Name --> */}
@@ -104,26 +139,106 @@ export default function SignUpForm() {
                     </Label>
                     <Input
                       type="text"
-                      id="lname"
-                      name="lname"
-                      placeholder="Enter your last name"
+                      name="admin_last_name"
+                      value={formData.admin_last_name}
+                      onChange={handleFormChange}
+                      placeholder="Enter your company last name"
                     />
                   </div>
                 </div>
-                {/* <!-- Email --> */}
-                <div>
-                  <Label>
-                    Email<span className="text-error-500">*</span>
-                  </Label>
-                  <Input
-                    type="email"
-                    id="email"
-                    name="email"
-                    placeholder="Enter your email"
-                  />
+                <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+                  {/* <!-- Contact number --> */}
+                  <div className="sm:col-span-1">
+                    <Label>
+                      Contact Number<span className="text-error-500">*</span>
+                    </Label>
+                    <Input
+                      type="text"
+                      name="contact_number"
+                      value={formData.contact_number}
+                      onChange={handleFormChange}
+                      placeholder="Enter your contact number"
+                    />
+                  </div>
+                  {/* <!-- position --> */}
+                  <div className="sm:col-span-1">
+                    <Label>
+                      Position<span className="text-error-500">*</span>
+                    </Label>
+                    <Input
+                      type="text"
+                      name="admin_position"
+                      value={formData.admin_position}
+                      onChange={handleFormChange}
+                      placeholder="Enter your position"
+                    />
+                  </div>
+                </div>
+                <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+                  {/* <!-- Email --> */}
+                  <div className="sm:col-span-1">
+                    <Label>
+                      Email<span className="text-error-500">*</span>
+                    </Label>
+                    <Input
+                      type="email"
+                      name="email"
+                      value={formData.email}
+                      onChange={handleFormChange}
+                      placeholder="Enter your email"
+                    />
+                  </div>
+                  {/* <!-- Company Name --> */}
+                  <div className="sm:col-span-1">
+                    <Label>
+                      Company Name<span className="text-error-500">*</span>
+                    </Label>
+                    <Input
+                      type="text"
+                      name="company_name"
+                      value={formData.company_name}
+                      onChange={handleFormChange}
+                      placeholder="Enter your Company Name"
+                    />
+                  </div>
+                </div>
+                <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+                  {/* <!-- Tenant type --> */}
+                  <div className="sm:col-span-1">
+                    <Label>
+                      Tenant type<span className="text-error-500">*</span>
+                    </Label>
+                    <select
+                      name="tenant_type"
+                      value={formData.tenant_type}
+                      onChange={handleFormChange}
+                      // defaultValue=""
+                      className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-200 text-gray-700 bg-white"
+                    >
+                      <option value="" disabled>
+                        Select a tenant
+                      </option>
+                      {tenants.map((item) => {
+                        return <option value={item.id}>{item.name}</option>;
+                      })}
+                    </select>
+                  </div>
+                  {/* <!-- Domain Url --> */}
+                  <div className="sm:col-span-1">
+                    <Label>
+                      Domain Url<span className="text-error-500">*</span>
+                    </Label>
+                    <Input
+                      type="text"
+                      name="domain_url"
+                      value={formData.domain_url}
+                      onChange={handleFormChange}
+                      placeholder="Enter your Domain Url"
+                    />
+                  </div>
                 </div>
                 {/* <!-- Password --> */}
-                <div>
+                {/* <div>
                   <Label>
                     Password<span className="text-error-500">*</span>
                   </Label>
@@ -143,7 +258,7 @@ export default function SignUpForm() {
                       )}
                     </span>
                   </div>
-                </div>
+                </div> */}
                 {/* <!-- Checkbox --> */}
                 <div className="flex items-center gap-3">
                   <Checkbox
@@ -164,8 +279,8 @@ export default function SignUpForm() {
                 </div>
                 {/* <!-- Button --> */}
                 <div>
-                  <button className="flex items-center justify-center w-full px-4 py-3 text-sm font-medium text-white transition rounded-lg bg-brand-500 shadow-theme-xs hover:bg-brand-600">
-                    Sign Up
+                  <button onClick={handleRegistration} className="flex items-center justify-center w-full px-4 py-3 text-sm font-medium text-white transition rounded-lg bg-brand-500 shadow-theme-xs hover:bg-brand-600">
+                    Register
                   </button>
                 </div>
               </div>
