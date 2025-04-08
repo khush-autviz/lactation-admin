@@ -68,7 +68,7 @@ export default function App() {
           {/* Auth Layout */}
           <Route path="/signin" element={<SignIn />} />
           <Route path="/signup" element={<SignUp />} />
-          <Route path="/otp" element={<OtpScreen />} />
+          <Route path="/verify-otp" element={<OtpScreen />} />
 
           {/* Fallback Route */}
           <Route path="*" element={<NotFound />} />

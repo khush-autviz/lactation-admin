@@ -1,3 +1,4 @@
+import { data } from "react-router";
 import axios from "../lib/axios";
 
 
@@ -13,4 +14,9 @@ export const getTenantTypes = async () => {
 export const verifyOtp = async (data: any) => {
    const response = await axios.post('/public/verify-otp/', data)
    return response
+}
+
+export const resendOtp = async (data: any) => {
+    const response = await axios.post('/public/resend-otp/', data)
+    return response
 }

@@ -5,6 +5,7 @@ type User = {
   id: string
   email: string
   role: 'superuser' | 'org'
+  isOtpVerified: boolean
 }
 
 interface AuthStore {

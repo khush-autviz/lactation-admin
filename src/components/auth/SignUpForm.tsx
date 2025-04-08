@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link } from "react-router";
+import { Link, useNavigate } from "react-router";
 // import { ChevronLeftIcon, EyeCloseIcon, EyeIcon } from "../../icons";
 import Label from "../form/Label";
 import Input from "../form/input/InputField";
@@ -12,11 +12,11 @@ import { getTenantTypes, registerCompany } from "../../api/createOrganisation";
 import Alert from "../ui/alert/Alert";
 
 export default function SignUpForm() {
-  // const navigate = useNavigate()
+  const navigate = useNavigate()
 
   const [isChecked, setIsChecked] = useState(false);
   // const [tenants, setTenants] = useState<any[]>([]);
-  const [otpModalOpen, setOtpModalOpen] = useState<boolean>(false);
+  // const [otpModalOpen, setOtpModalOpen] = useState<boolean>(false);
   const [showAlert, setshowAlert] = useState<boolean>(false);
   const [formData, setformData] = useState({
     company_name: "",
@@ -42,8 +42,10 @@ export default function SignUpForm() {
     mutationFn: registerCompany,
     onSuccess: (response) => {
       console.log("success", response);
-      useAuthStore.getState().setUser(response.data.data);
-      setOtpModalOpen(true)
+      useAuthStore.getState().setUser({...response.data.data, isOtpVerified: false});
+      // setOtpModalOpen(true)
+      navigate('/verify-otp')
+
     },
     onError: (error) => {
       console.log("company creation error", error.message);
@@ -81,7 +83,7 @@ export default function SignUpForm() {
           message="Please fill out all required fields."
         />
       )}
-      <Modal
+      {/* <Modal
         isOpen={otpModalOpen}
         onClose={() => setOtpModalOpen(false)}
         showCloseButton={true}
@@ -101,7 +103,7 @@ export default function SignUpForm() {
             Close
           </button>
         </div>
-      </Modal>
+      </Modal> */}
       <div className="flex flex-col justify-center flex-1 w-full max-w-md mx-auto">
         <div>
           <div className="mb-5 sm:mb-4">
