@@ -1,21 +1,23 @@
-import { useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router";
+import { useState } from "react";
+import { Link } from "react-router";
 // import { ChevronLeftIcon, EyeCloseIcon, EyeIcon } from "../../icons";
 import Label from "../form/Label";
 import Input from "../form/input/InputField";
 import Checkbox from "../form/input/Checkbox";
-import axios from "axios";
 import { useAuthStore } from "../../store/authStore";
 import { Modal } from "../ui/modal";
 import OtpScreen from "./OtpScreen";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { getTenantTypes, registerCompany } from "../../api/createOrganisation";
+import Alert from "../ui/alert/Alert";
 
 export default function SignUpForm() {
-
-  const navigate = useNavigate()
+  // const navigate = useNavigate()
 
   const [isChecked, setIsChecked] = useState(false);
-  const [tenants, setTenants] = useState<any[]>([]);
+  // const [tenants, setTenants] = useState<any[]>([]);
   const [otpModalOpen, setOtpModalOpen] = useState<boolean>(false);
+  const [showAlert, setshowAlert] = useState<boolean>(false);
   const [formData, setformData] = useState({
     company_name: "",
     tenant_type: "",
@@ -27,15 +29,26 @@ export default function SignUpForm() {
     domain_url: "",
   });
 
-  useEffect(() => {
-    const fetchTenant = async () => {
-      const response = await axios.get(
-        "http://localhost:8000/public/tenant-types/"
-      );
-      setTenants(response.data);
-    };
-    fetchTenant();
-  }, []);
+  // fetching tenant types
+  const { data: tenantTypesData } = useQuery({
+    queryKey: ["tenantTypes"],
+    queryFn: getTenantTypes,
+    staleTime: 5 * 60 * 1000,
+    refetchOnWindowFocus: false,
+  });
+
+  // POST registering company
+  const companyRegisterMutation = useMutation({
+    mutationFn: registerCompany,
+    onSuccess: (response) => {
+      console.log("success", response);
+      useAuthStore.getState().setUser(response.data.data);
+      setOtpModalOpen(true)
+    },
+    onError: (error) => {
+      console.log("company creation error", error.message);
+    },
+  });
 
   const handleFormChange = (e: any) => {
     const { name, value } = e.target;
@@ -50,39 +63,36 @@ export default function SignUpForm() {
     );
 
     if (!isFormValid) {
-      alert("Please fill in all fields.");
+      setshowAlert(true);
+      setTimeout(() => {
+        setshowAlert(false)
+      }, 2000);
       return;
     }
-    try {
-      const response = await axios.post("http://localhost:8000/public/register/", formData)
-      console.log('Success:', response.data.data);
-      useAuthStore.getState().setUser(response.data.data)
-      setOtpModalOpen(true)
-    } catch (error: any) {
-      if (error.response) {
-        console.log('Data:', error.response.data);          // the error message from the server
-      } else if (error.request) {
-        console.error('No response received:', error.request);
-      } else {
-        console.error('Error:', error.message);
-      }
-    }
-    
+    companyRegisterMutation.mutateAsync(formData);
   };
 
   return (
-    
     <div className="flex flex-col flex-1 w-full overflow-y-auto lg:w-1/2 no-scrollbar">
+      {showAlert && (
+        <Alert
+          variant="warning"
+          title="Warning"
+          message="Please fill out all required fields."
+        />
+      )}
       <Modal
         isOpen={otpModalOpen}
         onClose={() => setOtpModalOpen(false)}
         showCloseButton={true}
         className="max-w-lg mx-auto p-6" // customize your modal content width/padding
       >
-        <h2 className="text-xl mb-3 font-semibold text-gray-900 dark:text-white mb-4">OTP Verification</h2>
+        <h2 className="text-xl mb-3 font-semibold text-gray-900 dark:text-white mb-4">
+          OTP Verification
+        </h2>
         <div className="text-gray-700 dark:text-gray-300">
           <OtpScreen />
-        </div >
+        </div>
         <div className="mt-6 flex justify-end">
           <button
             onClick={() => setOtpModalOpen(false)}
@@ -202,8 +212,12 @@ export default function SignUpForm() {
                       <option value="" disabled>
                         Select a tenant
                       </option>
-                      {tenants.map((item) => {
-                        return <option key={item.id} value={item.id}>{item.name}</option>;
+                      {tenantTypesData?.data?.map((item: any) => {
+                        return (
+                          <option key={item.id} value={item.id}>
+                            {item.name}
+                          </option>
+                        );
                       })}
                     </select>
                   </div>

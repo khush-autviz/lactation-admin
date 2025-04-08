@@ -1,6 +1,7 @@
-import axios from "axios";
 import { useEffect, useRef, useState } from "react";
 import { useAuthStore } from "../../store/authStore";
+import { useMutation } from "@tanstack/react-query";
+import { verifyOtp } from "../../api/createOrganisation";
 
 export default function OtpScreen() {
   const [otp, setOtp] = useState<string[]>(Array(6).fill(""));
@@ -8,8 +9,19 @@ export default function OtpScreen() {
 
   useEffect(() => {
     inputsRef.current[0]?.focus();
-    console.log(useAuthStore.getState().user);
   }, []);
+
+  // post OTP verification
+  const OtpVerificationMutation = useMutation({
+    mutationFn: verifyOtp,
+    onSuccess: (response) => {
+        console.log('otp vireified', response.data);
+    },
+    onError: (error: any) => {
+        console.log("otp verification error", error);
+    }
+  })
+
 
   const handleChange = (value: string, index: number) => {
     if (!/^\d?$/.test(value)) return;
@@ -39,11 +51,7 @@ export default function OtpScreen() {
       otp_code: otpValue.join(""),
     };
 
-    const response = await axios.post(
-      "http://localhost:8000/public/verify-otp/",
-      otpData
-    );
-    console.log(response);
+    OtpVerificationMutation.mutateAsync(otpData)
   };
 
   return (
