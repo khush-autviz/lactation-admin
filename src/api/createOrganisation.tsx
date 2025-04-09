@@ -1,4 +1,3 @@
-import { data } from "react-router";
 import axios from "../lib/axios";
 
 
