@@ -5,8 +5,6 @@ import Label from "../form/Label";
 import Input from "../form/input/InputField";
 import Checkbox from "../form/input/Checkbox";
 import { useAuthStore } from "../../store/authStore";
-import { Modal } from "../ui/modal";
-import OtpScreen from "./OtpScreen";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { getTenantTypes, registerCompany } from "../../api/createOrganisation";
 import Alert from "../ui/alert/Alert";
@@ -15,8 +13,6 @@ export default function SignUpForm() {
   const navigate = useNavigate()
 
   const [isChecked, setIsChecked] = useState(false);
-  // const [tenants, setTenants] = useState<any[]>([]);
-  // const [otpModalOpen, setOtpModalOpen] = useState<boolean>(false);
   const [showAlert, setshowAlert] = useState<boolean>(false);
   const [formData, setformData] = useState({
     company_name: "",
@@ -83,27 +79,6 @@ export default function SignUpForm() {
           message="Please fill out all required fields."
         />
       )}
-      {/* <Modal
-        isOpen={otpModalOpen}
-        onClose={() => setOtpModalOpen(false)}
-        showCloseButton={true}
-        className="max-w-lg mx-auto p-6" // customize your modal content width/padding
-      >
-        <h2 className="text-xl mb-3 font-semibold text-gray-900 dark:text-white mb-4">
-          OTP Verification
-        </h2>
-        <div className="text-gray-700 dark:text-gray-300">
-          <OtpScreen />
-        </div>
-        <div className="mt-6 flex justify-end">
-          <button
-            onClick={() => setOtpModalOpen(false)}
-            className="px-4 py-2 bg-gray-200 rounded-md hover:bg-gray-300 dark:bg-gray-700 dark:text-white"
-          >
-            Close
-          </button>
-        </div>
-      </Modal> */}
       <div className="flex flex-col justify-center flex-1 w-full max-w-md mx-auto">
         <div>
           <div className="mb-5 sm:mb-4">

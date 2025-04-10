@@ -1,8 +1,9 @@
-import { use, useEffect, useRef, useState } from "react";
+import {  useEffect, useRef, useState } from "react";
 import { useAuthStore } from "../../store/authStore";
 import { useMutation } from "@tanstack/react-query";
 import { resendOtp, verifyOtp } from "../../api/createOrganisation";
 import Timer from "../common/Timer";
+import { useNavigate } from "react-router";
 // import ThemeTogglerTwo from "../common/ThemeTogglerTwo";
 
 export default function OtpScreen() {
@@ -10,6 +11,8 @@ export default function OtpScreen() {
   const inputsRef = useRef<(HTMLInputElement | null)[]>([]);
   const [resetKey, setresetKey] = useState(0);
   const user = useAuthStore.getState().user;
+
+  const navigate = useNavigate()
 
   console.log("vsd", user);
 
@@ -28,6 +31,7 @@ export default function OtpScreen() {
           isOtpVerified: true,
         });
       }
+      navigate('/signin')
     },
     onError: (error: any) => {
       console.log("otp verification error", error);
@@ -133,12 +137,12 @@ export default function OtpScreen() {
         {/* Resend OTP */}
         <div className="mt-5">
           <span>Did not get OTP?</span>
-          <span
+          <button
             onClick={handleResendOtp}
             className="ms-1 cursor-pointer px-2 underline underline-offset-2 py-1 text-sm font-medium text-black transition"
           >
             Resend code
-          </span>
+          </button>
           <span>
             in <Timer duration={10} resetKey={resetKey} />
           </span>

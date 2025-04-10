@@ -21,6 +21,8 @@ import Home from "./pages/Dashboard/Home";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
 import OtpScreen from "./components/auth/OtpScreen";
 import {QueryClient, QueryClientProvider} from '@tanstack/react-query'
+import ForgotPassword from "./components/auth/ForgotPassword";
+import {Toaster} from 'sonner'
 
 export default function App() {
 
@@ -30,6 +32,7 @@ export default function App() {
     <QueryClientProvider client={queryClient}>
       <Router>
         <ScrollToTop />
+      <Toaster position="top-right" richColors duration={2000} />
         <Routes>
           {/* Dashboard Layout */}
           <Route index path="/" element={<SignIn />} />
@@ -69,6 +72,7 @@ export default function App() {
           <Route path="/signin" element={<SignIn />} />
           <Route path="/signup" element={<SignUp />} />
           <Route path="/verify-otp" element={<OtpScreen />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
 
           {/* Fallback Route */}
           <Route path="*" element={<NotFound />} />

@@ -1,39 +1,44 @@
 import { useState } from "react";
-import { Link } from "react-router";
-import { ChevronLeftIcon, EyeCloseIcon, EyeIcon } from "../../icons";
+import { Link, useNavigate } from "react-router";
+import { EyeCloseIcon, EyeIcon } from "../../icons";
 import Label from "../form/Label";
 import Input from "../form/input/InputField";
 import Checkbox from "../form/input/Checkbox";
 import { useMutation } from "@tanstack/react-query";
-import {
-  forgotPasswordMail,
-  tenantLogin,
-  forgotPasswordOtp,
-} from "../../api/tenants";
+import { forgotPasswordMail, tenantLogin } from "../../api/tenants";
 import { Modal } from "../ui/modal";
+import { useAuthStore } from "../../store/authStore";
+import { toast } from "sonner";
 
 export default function SignInForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [isChecked, setIsChecked] = useState(false);
   const [forgotModalOpen, setforgotModalOpen] = useState(false);
   const [forgotEmail, setforgotEmail] = useState("");
-  const [isotpSent, setisotpSent] = useState(false);
-  const [isOtpVerified, setisOtpVerified] = useState(false);
-  const [otp, setotp] = useState("");
   const [formData, setformData] = useState({
     email: "",
     password: "",
   });
+  const navigate = useNavigate();
+
+  // validate email
+  const isValidEmail = (email: string) => {
+    return /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(email);
+  };
 
   // login api
   const tenantLoginMutation = useMutation({
     mutationFn: tenantLogin,
     onSuccess: (response) => {
       console.log("tenantlog sicess", response);
+      useAuthStore.getState().setUser(response.data.data.user);
+      useAuthStore.getState().setToken(response.data.data.access);
       setformData({ email: "", password: "" });
+      toast.success('login')
     },
     onError: (error: any) => {
       console.log("tenant log eror", error);
+      toast.error(error?.response?.data?.message || error?.message || "Something went wrong");
     },
   });
 
@@ -42,56 +47,53 @@ export default function SignInForm() {
     mutationFn: forgotPasswordMail,
     onSuccess: (response) => {
       console.log("forgot pass succes", response);
-      setisotpSent(true);
-    },
-    onError: (error) => {
-      console.log("forgot pass error", error);
-    },
-  });
-
-  //forgotpassword otp api
-  const forgotPasswordOtpMutation = useMutation({
-    mutationFn: forgotPasswordOtp,
-    onSuccess: (response) => {
-      console.log("forgot pass otp suchess", response);
+      localStorage.setItem("lactation-forgot-email", forgotEmail);
+      navigate("/forgot-password");
     },
     onError: (error: any) => {
-      console.log("forgotpass otp error", error);
+      console.log("forgot pass error", error);
+      toast.error(error?.response?.data?.message || error?.message || "Something went wrong");
     },
   });
 
+  // handles form data
   const handleChange = (e: any) => {
     const { name, value } = e.target;
     setformData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleLogin = (e: any) => {
+  // login button
+  const handleLogin =  (e: any) => {
     // const tenantDomain = "tenant1.lvh.me:5173"; // hardcoded for now
     // window.location.href = `http://${tenantDomain}`;
 
     e.preventDefault();
-    if (formData.email === "" || formData.password === "") {
-      console.log("fill fields");
-
+    const cleanedEmail = formData.email.trim().toLowerCase();
+    if (cleanedEmail === "" || formData.password === "") {
+      toast.warning("Empty Fields");
       return;
     }
-    tenantLoginMutation.mutateAsync(formData);
+
+    if (!isValidEmail(cleanedEmail)) {
+      toast.warning("Please enter a valid email address");
+      return;
+    }
+
+       tenantLoginMutation.mutateAsync({...formData, email: cleanedEmail});
+
   };
 
+  // forgot pass send button
   const handleForgotPasswordMail = () => {
-    const forgotPasswordMailData = {
-      email: forgotEmail,
-    };
-    forgotPasswordMailMutation.mutateAsync(forgotPasswordMailData);
-  };
+    const cleanedEmail = forgotEmail.trim().toLowerCase();
 
-  const handleForgotPasswordOtp = () => {
-    const forgotPasswordOtpData = {
-      email: forgotEmail,
-      otp,
-    };
+    if (!isValidEmail(cleanedEmail)) {
+      toast.warning("Please enter a valid email address");
+      return;
+    }
 
-    forgotPasswordOtpMutation.mutateAsync(forgotPasswordOtpData);
+      forgotPasswordMailMutation.mutateAsync({ email: cleanedEmail });
+    
   };
 
   return (
@@ -118,7 +120,7 @@ export default function SignInForm() {
                     name="email"
                     value={formData.email}
                     onChange={handleChange}
-                    placeholder="info@gmail.com"
+                    placeholder="Enter your email"
                   />
                 </div>
                 <div>
@@ -153,7 +155,6 @@ export default function SignInForm() {
                     </span>
                   </div>
                   <span
-                    // to="/reset-password"
                     onClick={() => setforgotModalOpen(true)}
                     className="text-sm text-brand-500 hover:text-brand-600 dark:text-brand-400 cursor-pointer"
                   >
@@ -161,11 +162,9 @@ export default function SignInForm() {
                   </span>
                 </div>
                 <div>
-                  {/* <Button onClick={(e: any) => handleLogin(e)} className="w-full" size="sm">
-                    Sign in
-                  </Button> */}
                   <button
                     onClick={handleLogin}
+                    disabled={tenantLoginMutation.isPending}
                     className="flex items-center justify-center w-full px-4 py-3 text-sm font-medium text-white transition rounded-lg bg-brand-500 shadow-theme-xs hover:bg-brand-600"
                   >
                     Sign in
@@ -199,51 +198,25 @@ export default function SignInForm() {
         >
           <h2 className="text-xl font-bold mb-5">Forgot Email?</h2>
           <p className="text-gray-700 dark:text-gray-300 mb-5">
-            You will receive an OTP on the email.
+            The one-time password will be sent to your registered email.
           </p>
 
           {/* enter mail */}
-          {!isotpSent && (
-            <Input
-              type="email"
-              value={forgotEmail}
-              onChange={(e) => setforgotEmail(e.target.value)}
-              placeholder="info@gmail.com"
-              className="mb-5"
-            />
-          )}
-
-          {/* enter otp */}
-          {isotpSent && !isOtpVerified && (
-            <Input
-              value={otp}
-              onChange={(e) => setotp(e.target.value)}
-              placeholder="Enter the OTP"
-              className="mb-5 border border-black"
-            />
-          )}
-
-          {/* enter new password */}
-          {isotpSent && isOtpVerified && (
-            <Input
-              value={otp}
-              onChange={(e) => setotp(e.target.value)}
-              placeholder="Enter the OTP"
-              className="mb-5 border border-black"
-            />
-          )}
+          <Input
+            type="email"
+            value={forgotEmail}
+            onChange={(e) => setforgotEmail(e.target.value)}
+            placeholder="Enter your email"
+            className="mb-5"
+          />
 
           {/* mail and otp button */}
-          {!isOtpVerified && (
-            <button
-              onClick={
-                !isotpSent ? handleForgotPasswordMail : handleForgotPasswordOtp
-              }
-              className="mb-2 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-            >
-              {isotpSent ? "Verify OTP" : "Send   "}
-            </button>
-          )}
+          <button
+            onClick={handleForgotPasswordMail}
+            className="mb-2 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+          >
+            Send
+          </button>
         </Modal>
       )}
     </div>
