@@ -23,6 +23,7 @@ import OtpScreen from "./components/auth/OtpScreen";
 import {QueryClient, QueryClientProvider} from '@tanstack/react-query'
 import ForgotPassword from "./components/auth/ForgotPassword";
 import {Toaster} from 'sonner'
+import GetDomain from "./components/auth/GetDomain";
 
 export default function App() {
 
@@ -35,12 +36,12 @@ export default function App() {
       <Toaster position="top-right" richColors duration={2000} />
         <Routes>
           {/* Dashboard Layout */}
-          <Route index path="/" element={<SignIn />} />
+          <Route index path="/" element={<GetDomain />} />
           <Route
             element={
-              <ProtectedRoute>
+              // <ProtectedRoute>
                 <AppLayout />
-              </ProtectedRoute>
+              // </ProtectedRoute>
             }
           >
             {/* Others Page */}

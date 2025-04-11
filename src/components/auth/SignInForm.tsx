@@ -20,21 +20,32 @@ export default function SignInForm() {
     password: "",
   });
   const navigate = useNavigate();
+  const globalState = useAuthStore.getState()
 
+// fetches subdomain
+const getSubdomain = () => {
+  const hostname = window.location.hostname; // e.g. "test.example.com"
+  const parts = hostname.split(".");
+  return parts[0]
+}
+  
   // validate email
   const isValidEmail = (email: string) => {
     return /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(email);
   };
 
+
+
   // login api
   const tenantLoginMutation = useMutation({
     mutationFn: tenantLogin,
     onSuccess: (response) => {
-      console.log("tenantlog sicess", response);
-      useAuthStore.getState().setUser(response.data.data.user);
-      useAuthStore.getState().setToken(response.data.data.access);
-      setformData({ email: "", password: "" });
       toast.success('login')
+      console.log("tenantlog sicess", response);
+      globalState.setUser(response.data.data.user);
+      globalState.setToken(response.data.data.access);
+      setformData({ email: "", password: "" });
+      window.location.href = `http://${getSubdomain()}.localhost:5173/profile`;
     },
     onError: (error: any) => {
       console.log("tenant log eror", error);
@@ -64,9 +75,6 @@ export default function SignInForm() {
 
   // login button
   const handleLogin =  (e: any) => {
-    // const tenantDomain = "tenant1.lvh.me:5173"; // hardcoded for now
-    // window.location.href = `http://${tenantDomain}`;
-
     e.preventDefault();
     const cleanedEmail = formData.email.trim().toLowerCase();
     if (cleanedEmail === "" || formData.password === "") {

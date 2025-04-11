@@ -3,6 +3,7 @@ import { Modal } from "../ui/modal";
 import Button from "../ui/button/Button";
 import Input from "../form/input/InputField";
 import Label from "../form/Label";
+import { useAuthStore } from "../../store/authStore";
 
 export default function UserInfoCard() {
   const { isOpen, openModal, closeModal } = useModal();
@@ -11,6 +12,9 @@ export default function UserInfoCard() {
     console.log("Saving changes...");
     closeModal();
   };
+
+  const USER = useAuthStore((state) => state.user)
+
   return (
     <div className="p-5 border border-gray-200 rounded-2xl dark:border-gray-800 lg:p-6">
       <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
@@ -25,7 +29,7 @@ export default function UserInfoCard() {
                 First Name
               </p>
               <p className="text-sm font-medium text-gray-800 dark:text-white/90">
-                Musharof
+                {USER?.first_name}
               </p>
             </div>
 
@@ -34,7 +38,7 @@ export default function UserInfoCard() {
                 Last Name
               </p>
               <p className="text-sm font-medium text-gray-800 dark:text-white/90">
-                Chowdhury
+                {USER?.last_name}
               </p>
             </div>
 
@@ -43,7 +47,7 @@ export default function UserInfoCard() {
                 Email address
               </p>
               <p className="text-sm font-medium text-gray-800 dark:text-white/90">
-                randomuser@pimjo.com
+                {USER?.email}
               </p>
             </div>
 
@@ -52,7 +56,7 @@ export default function UserInfoCard() {
                 Phone
               </p>
               <p className="text-sm font-medium text-gray-800 dark:text-white/90">
-                +09 363 398 46
+                {USER?.phone_number}
               </p>
             </div>
 
@@ -61,7 +65,7 @@ export default function UserInfoCard() {
                 Bio
               </p>
               <p className="text-sm font-medium text-gray-800 dark:text-white/90">
-                Team Manager
+                {USER?.position_in_company}
               </p>
             </div>
           </div>

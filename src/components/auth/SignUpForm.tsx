@@ -7,13 +7,13 @@ import Checkbox from "../form/input/Checkbox";
 import { useAuthStore } from "../../store/authStore";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { getTenantTypes, registerCompany } from "../../api/createOrganisation";
-import Alert from "../ui/alert/Alert";
+import { toast } from "sonner";
+import { useTheme } from "../../context/ThemeContext";
 
 export default function SignUpForm() {
-  const navigate = useNavigate()
+  const navigate = useNavigate();
 
   const [isChecked, setIsChecked] = useState(false);
-  const [showAlert, setshowAlert] = useState<boolean>(false);
   const [formData, setformData] = useState({
     company_name: "",
     tenant_type: "",
@@ -24,6 +24,15 @@ export default function SignUpForm() {
     admin_position: "",
     domain_url: "",
   });
+
+  const { theme } = useTheme();
+
+  const selectClass =
+  "h-11 w-full rounded-lg border appearance-none px-4 py-2.5 text-sm shadow-theme-xs placeholder:text-gray-400 focus:outline-hidden focus:ring-3 " +
+  (theme === "dark"
+    ? "bg-gray-900 text-white/90 placeholder:text-white/30 border-gray-700 focus:border-brand-800"
+    : "bg-transparent text-gray-800 border-gray-300 focus:border-brand-300 focus:ring-brand-500/20");
+
 
   // fetching tenant types
   const { data: tenantTypesData } = useQuery({
@@ -38,47 +47,72 @@ export default function SignUpForm() {
     mutationFn: registerCompany,
     onSuccess: (response) => {
       console.log("success", response);
-      useAuthStore.getState().setUser({...response.data.data, isOtpVerified: false});
+      useAuthStore
+        .getState()
+        .setUser({ ...response.data.data, isOtpVerified: false });
       // setOtpModalOpen(true)
-      navigate('/verify-otp')
-
+      navigate("/verify-otp");
+      toast.success("OTP Sent!");
     },
-    onError: (error) => {
+    onError: (error: any) => {
       console.log("company creation error", error.message);
+      toast.error(
+        error?.response?.data?.message ||
+          error?.message ||
+          "Something went wrong"
+      );
     },
   });
 
+  // handle form changes
   const handleFormChange = (e: any) => {
     const { name, value } = e.target;
+
+    if (name === "contact_number" && !/^\d*$/.test(value)) {
+      return; // skip if not digits
+    }
+
     setformData((prev) => ({ ...prev, [name]: value }));
   };
 
+  // register button
   const handleRegistration = async (e: any) => {
     e.preventDefault();
+
     // Check if any field is empty
     const isFormValid = Object.values(formData).every(
       (value) => value.trim() !== ""
     );
 
+    
     if (!isFormValid) {
-      setshowAlert(true);
-      setTimeout(() => {
-        setshowAlert(false)
-      }, 2000);
+      toast.error("Please Fill all the Fields");
       return;
     }
+    
+    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    const phoneRegex = /^\d{10}$/;
+    
+    if (!emailRegex.test(formData.email)) {
+      toast.error("Please enter a valid email address.");
+      return;
+    }
+    
+    if (!phoneRegex.test(formData.contact_number)) {
+      toast.error("Contact number should contain 10 digits.");
+      return;
+    }
+    
+    if (!isChecked) {
+      toast.error("Please agree to the terms & conditions");
+      return;
+    }
+
     companyRegisterMutation.mutateAsync(formData);
   };
 
   return (
     <div className="flex flex-col flex-1 w-full overflow-y-auto lg:w-1/2 no-scrollbar">
-      {showAlert && (
-        <Alert
-          variant="warning"
-          title="Warning"
-          message="Please fill out all required fields."
-        />
-      )}
       <div className="flex flex-col justify-center flex-1 w-full max-w-md mx-auto">
         <div>
           <div className="mb-5 sm:mb-4">
@@ -87,7 +121,7 @@ export default function SignUpForm() {
             </h1>
           </div>
           <div>
-            <form onSubmit={handleRegistration}>
+            <form>
               <div className="space-y-5">
                 <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
                   {/* <!-- First Name --> */}
@@ -124,7 +158,7 @@ export default function SignUpForm() {
                       Contact Number<span className="text-error-500">*</span>
                     </Label>
                     <Input
-                      type="text"
+                      type="tel"
                       name="contact_number"
                       value={formData.contact_number}
                       onChange={handleFormChange}
@@ -184,7 +218,7 @@ export default function SignUpForm() {
                       value={formData.tenant_type}
                       onChange={handleFormChange}
                       // defaultValue=""
-                      className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-200 text-gray-700 bg-white"
+                      className={selectClass}
                     >
                       <option value="" disabled>
                         Select a tenant
@@ -231,11 +265,13 @@ export default function SignUpForm() {
                   </p>
                 </div>
                 {/* <!-- Button --> */}
-                <div>
-                  <button className="flex items-center justify-center w-full px-4 py-3 text-sm font-medium text-white transition rounded-lg bg-brand-500 shadow-theme-xs hover:bg-brand-600">
-                    Register
-                  </button>
-                </div>
+                <button
+                  onClick={handleRegistration}
+                  disabled={companyRegisterMutation.isPending}
+                  className="flex items-center justify-center w-full px-4 py-3 text-sm font-medium text-white transition rounded-lg bg-brand-500 shadow-theme-xs hover:bg-brand-600"
+                >
+                  Register
+                </button>
               </div>
             </form>
 

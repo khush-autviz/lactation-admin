@@ -15,9 +15,21 @@ export const resetPassword = async (data:any) => {
 }
 
 export const tenantLogin = async (data: any) => {
-    const response = await axios.post('/public/login/', data)
+    const response = await axios.post('/tenant/login/', data)
     return response
 }
+ 
+export const getDomain = async (data: any) => {
+    const response = await axios.post('/public/lookup-domains/', data)
+    return response
+}
+
+export const getUserProfile = async (data: any) => {
+    const response = await axios.get('/tenant/user/profile/', data)
+    return response
+}
+
+
 
 
 

@@ -1,22 +1,53 @@
-import { create } from 'zustand'
-import {persist} from 'zustand/middleware'
+// import { create } from 'zustand'
+// import {persist} from 'zustand/middleware'
 
-type User = {
-  id: string
-  email: string
-  role: 'superuser' | 'org'
-  isOtpVerified: boolean
-}
+// type User = {
+//   id: string
+//   email: string
+//   role: 'superuser' | 'org'
+//   isOtpVerified: boolean
+// }
+
+// interface AuthStore {
+//   user: User | null
+//   token: string | null
+//   setUser: (user: User) => void
+//   setToken: (token: string) => void
+//   logout: () => void
+// }
+
+
+
+// export const useAuthStore = create<AuthStore>()(
+//   persist(
+//     (set) => ({
+//       user: null,
+//       token: null,
+//       setUser: (user) => set({ user }),
+//       setToken: (token) => set({ token }),
+//       logout: () => set({ user: null, token: null }),
+//     }),
+//     {
+//       name: 'lactation-auth',
+//       partialize: (state) => ({ user: state.user, token: state.token }),
+//     }
+//   )
+// )
+
+
+
+import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
+
+type User = Record<string, any>; // 🔄 More flexible
 
 interface AuthStore {
-  user: User | null
-  token: string | null
-  setUser: (user: User) => void
-  setToken: (token: string) => void
-  logout: () => void
+  user: User | null;
+  token: string | null;
+  setUser: (user: User) => void;
+  setToken: (token: string) => void;
+  logout: () => void;
 }
-
-
 
 export const useAuthStore = create<AuthStore>()(
   persist(
@@ -32,4 +63,5 @@ export const useAuthStore = create<AuthStore>()(
       partialize: (state) => ({ user: state.user, token: state.token }),
     }
   )
-)
+);
+

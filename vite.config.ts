@@ -17,6 +17,6 @@ export default defineConfig({
   ],
   server: {
     host: true,   // allow access from subdomains
-    allowedHosts: ['.lvh.me'],
+    // allowedHosts: ['.lvh.me', 'localhost'],
   }
 });
