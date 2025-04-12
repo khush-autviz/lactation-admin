@@ -29,6 +29,17 @@ export const getUserProfile = async (data: any) => {
     return response
 }
 
+export const createTenantUser = async (data: any) => {
+    const response = await axios.post('/tenant/user/profile/', data)
+    return response
+}
+
+export const getAllTenants = async (data: any) => {
+    const response = await axios.get('/tenant/admin/', data)
+    return response
+}
+
+
 
 
 
