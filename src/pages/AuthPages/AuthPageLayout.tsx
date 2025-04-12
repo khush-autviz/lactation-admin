@@ -1,6 +1,6 @@
 import React from "react";
 import GridShape from "../../components/common/GridShape";
-import ThemeTogglerTwo from "../../components/common/ThemeTogglerTwo";
+// import ThemeTogglerTwo from "../../components/common/ThemeTogglerTwo";
 
 export default function AuthLayout({
   children,
@@ -16,15 +16,15 @@ export default function AuthLayout({
             {/* <!-- ===== Common Grid Shape Start ===== --> */}
             <GridShape />
             <div className="flex flex-col items-center max-w-xs">
-              <h1 className="text-center text-lg text-gray-400 dark:text-white/60">
-                Autviz Solutions
+              <h1 className="text-center text-3xl text-gray-400 dark:text-white/60">
+                Lactation
               </h1>
             </div>
           </div>
         </div>
-        <div className="fixed z-50 hidden bottom-6 right-6 sm:block">
+        {/* <div className="fixed z-50 hidden bottom-6 right-6 sm:block">
           <ThemeTogglerTwo />
-        </div>
+        </div> */}
       </div>
     </div>
   );

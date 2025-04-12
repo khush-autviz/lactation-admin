@@ -8,7 +8,6 @@ import { useAuthStore } from "../../store/authStore";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { getTenantTypes, registerCompany } from "../../api/createOrganisation";
 import { toast } from "sonner";
-import { useTheme } from "../../context/ThemeContext";
 
 export default function SignUpForm() {
   const navigate = useNavigate();
@@ -24,14 +23,6 @@ export default function SignUpForm() {
     admin_position: "",
     domain_url: "",
   });
-
-  const { theme } = useTheme();
-
-  const selectClass =
-  "h-11 w-full rounded-lg border appearance-none px-4 py-2.5 text-sm shadow-theme-xs placeholder:text-gray-400 focus:outline-hidden focus:ring-3 " +
-  (theme === "dark"
-    ? "bg-gray-900 text-white/90 placeholder:text-white/30 border-gray-700 focus:border-brand-800"
-    : "bg-transparent text-gray-800 border-gray-300 focus:border-brand-300 focus:ring-brand-500/20");
 
 
   // fetching tenant types
@@ -71,7 +62,6 @@ export default function SignUpForm() {
     if (name === "contact_number" && !/^\d*$/.test(value)) {
       return; // skip if not digits
     }
-
     setformData((prev) => ({ ...prev, [name]: value }));
   };
 
@@ -84,27 +74,26 @@ export default function SignUpForm() {
       (value) => value.trim() !== ""
     );
 
-    
     if (!isFormValid) {
-      toast.error("Please Fill all the Fields");
+      toast.warning("Please Fill all the Fields");
       return;
     }
-    
+
     const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
     const phoneRegex = /^\d{10}$/;
-    
+
     if (!emailRegex.test(formData.email)) {
-      toast.error("Please enter a valid email address.");
+      toast.warning("Please enter a valid email address.");
       return;
     }
-    
+
     if (!phoneRegex.test(formData.contact_number)) {
-      toast.error("Contact number should contain 10 digits.");
+      toast.warning("Contact number should contain 10 digits.");
       return;
     }
-    
+
     if (!isChecked) {
-      toast.error("Please agree to the terms & conditions");
+      toast.warning("Please agree to the terms & conditions");
       return;
     }
 
@@ -217,20 +206,29 @@ export default function SignUpForm() {
                       name="tenant_type"
                       value={formData.tenant_type}
                       onChange={handleFormChange}
-                      // defaultValue=""
-                      className={selectClass}
+                      className={`h-11 w-full appearance-none rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 pr-11 text-sm shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:placeholder:text-white/30 dark:focus:border-brand-800 ${
+                        formData.tenant_type
+                          ? "text-gray-800 dark:text-white/90"
+                          : "text-gray-400 dark:text-blue-400"
+                      }`}
                     >
-                      <option value="" disabled>
+                      <option
+                        value=""
+                        disabled
+                        className="text-gray-700 dark:bg-gray-900 dark:text-blue-400"
+                      >
                         Select a tenant
                       </option>
-                      {tenantTypesData?.data?.map((item: any) => {
-                        return (
-                          <option key={item.id} value={item.id}>
-                            {item.name}
-                          </option>
-                        );
-                      })}
-                    </select>
+                      {tenantTypesData?.data?.map((item: any) => (
+                        <option
+                          key={item.id}
+                          value={item.id}
+                          className="text-gray-700 dark:bg-gray-900 dark:text-gray-400"
+                        >
+                          {item.name}
+                        </option>
+                      ))}
+                    </select> 
                   </div>
                   {/* <!-- Domain Url --> */}
                   <div className="sm:col-span-1">
@@ -276,13 +274,13 @@ export default function SignUpForm() {
             </form>
 
             <div className="mt-5">
-              <p className="text-sm font-normal text-center text-gray-700 dark:text-gray-400 sm:text-start">
+              <p className="text-md font-normal text-center text-gray-700 dark:text-gray-400 sm:text-start">
                 Already have an account? {""}
                 <Link
-                  to="/signin"
+                  to="/"
                   className="text-brand-500 hover:text-brand-600 dark:text-brand-400"
                 >
-                  Sign In
+                  Find you domain
                 </Link>
               </p>
             </div>

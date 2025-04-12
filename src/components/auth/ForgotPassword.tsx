@@ -2,13 +2,18 @@ import { useState } from "react";
 import Input from "../form/input/InputField";
 import { EyeCloseIcon, EyeIcon } from "../../icons";
 import { useMutation } from "@tanstack/react-query";
-import { forgotPasswordMail, forgotPasswordOtp, resetPassword } from "../../api/tenants";
-import ThemeTogglerTwo from "../common/ThemeTogglerTwo";
+import {
+  forgotPasswordMail,
+  forgotPasswordOtp,
+  resetPassword,
+} from "../../api/tenants";
 import { useNavigate } from "react-router";
 import { toast } from "sonner";
+import ComponentCard from "../common/ComponentCard";
+import { Loader } from "../ui/loader";
 
 export default function ForgotPassword() {
-  const [isOtpVerified, setIsOtpVerified] = useState(false);
+  const [isOtpVerified, setIsOtpVerified] = useState(true);
   const [otp, setOtp] = useState("");
   const [resetPasswordValue, setResetPasswordValue] = useState({
     newPassword: "",
@@ -21,6 +26,8 @@ export default function ForgotPassword() {
 
   const navigate = useNavigate();
 
+  
+  
   //forgotpassword otp api
   const forgotPasswordOtpMutation = useMutation({
     mutationFn: forgotPasswordOtp,
@@ -35,10 +42,14 @@ export default function ForgotPassword() {
     },
     onError: (error: any) => {
       console.log("forgotpass otp error", error);
-      toast.error(error?.response?.data?.message || error?.message || "Something went wrong");
+      toast.error(
+        error?.response?.data?.message ||
+        error?.message ||
+        "Something went wrong"
+      );
     },
   });
-
+  
   // reset password api
   const resetPasswordMutation = useMutation({
     mutationFn: resetPassword,
@@ -51,22 +62,30 @@ export default function ForgotPassword() {
     },
     onError: (error: any) => {
       console.log("reset pass error", error);
-      toast.error(error?.response?.data?.message || error?.message || "Something went wrong");
+      toast.error(
+        error?.response?.data?.message ||
+        error?.message ||
+        "Something went wrong"
+      );
     },
   });
-
+  
   // resend otp api
   const resendOtpMutation = useMutation({
-     mutationFn: forgotPasswordMail,
-       onSuccess: (response) => {
-         console.log("resend otp succes", response);
-         toast.success('OTP Sent!')
-       },
-       onError: (error: any) => {
-         console.log("resend otp error", error);
-         toast.error(error?.response?.data?.message || error?.message || "Something went wrong");
-       },
-     });
+    mutationFn: forgotPasswordMail,
+    onSuccess: (response) => {
+      console.log("resend otp succes", response);
+      toast.success("OTP Sent!");
+    },
+    onError: (error: any) => {
+      console.log("resend otp error", error);
+      toast.error(
+        error?.response?.data?.message ||
+        error?.message ||
+        "Something went wrong"
+      );
+    },
+  });
 
   // handles reset password value
   const handleResetPasswordValue = (e: any) => {
@@ -76,7 +95,9 @@ export default function ForgotPassword() {
 
   // forgot pass otp button
   const handleForgotPasswordOtp = () => {
-    if (!otp.trim()) return toast.error("Please enter OTP");
+    // if (!otp.trim()) return toast.error("Please enter OTP");
+
+    if (otp.length !== 4) return toast.warning('Please enter a 4 digit OTP!')
 
     forgotPasswordOtpMutation.mutateAsync({
       email: localStorage.getItem("lactation-forgot-email"),
@@ -108,111 +129,133 @@ export default function ForgotPassword() {
   };
 
   const handleResendOtp = () => {
-      resendOtpMutation.mutateAsync({ email: localStorage.getItem('lactation-forgot-email ') });    
+    resendOtpMutation.mutateAsync({
+      email: localStorage.getItem("lactation-forgot-email "),
+    });
   };
 
+  const handleChange = (e: any) => {
+    const val = e.target.value
+    if (/^\d{0,4}$/.test(val)) {
+      setOtp(val);
+    }
+  }
+ 
   return (
-    <div className="flex items-center justify-center h-screen bg-black">
-      <div className="border border-gray-600 rounded-2xl p-8 max-w-1/3 bg-white">
-        <h1 className="text-2xl font-bold mb-2">Forgot Password</h1>
-        <p className="text-gray-700 mb-10">
-          The one-time password is sent to your registered email.
-        </p>
-
-        {/* enter otp */}
-        {!isOtpVerified && (
-          <Input
-            value={otp}
-            onChange={(e) => setOtp(e.target.value)}
-            placeholder="Enter the OTP"
-            className="mb-5 border border-black"
-          />
-        )}
-
-        {/* enter new password */}
-        {isOtpVerified && (
-          <>
-            <div className="relative mb-5">
+    <div className="flex items-center justify-center h-screen bg-gray-100 ">
+      {(forgotPasswordOtpMutation.isPending || resendOtpMutation.isPending || resetPasswordMutation.isPending) && <Loader />}
+      <h1 className="mb-2 font-semibold text-gray-800 text-title-sm dark:text-white/90 sm:text-title-md w-1/2">
+        Enter the OTP sent to your registered Email.
+      </h1>
+      <div className=" rounded-2xl w-1/3 bg-white">
+        <ComponentCard
+          title="Forgot Password"
+          desc="The OTP is valid for 10 minutes."
+        >
+          <div className="space-y-6">
+            {/* enter otp */}
+            {!isOtpVerified && (
               <Input
-                name="newPassword"
-                type={resetPasswordShow.newPassword ? "text" : "password"}
-                placeholder="New password"
-                onChange={handleResetPasswordValue}
-                value={resetPasswordValue.newPassword}
+                value={otp}
+                onChange={handleChange}
+                placeholder="Enter the OTP"
+                className="mb-4 border border-black"
               />
-              <span
-                onClick={() =>
-                  setResetPasswordShow((prev) => ({
-                    ...prev,
-                    newPassword: !prev.newPassword,
-                  }))
-                }
-                className="absolute z-30 -translate-y-1/2 cursor-pointer right-4 top-1/2"
+            )}
+
+            {/* enter new password */}
+            {isOtpVerified && (
+              <>
+                <div className="relative mb-5">
+                  <Input
+                    name="newPassword"
+                    type={resetPasswordShow.newPassword ? "text" : "password"}
+                    placeholder="New password"
+                    onChange={handleResetPasswordValue}
+                    value={resetPasswordValue.newPassword}
+                  />
+                  <span
+                    onClick={() =>
+                      setResetPasswordShow((prev) => ({
+                        ...prev,
+                        newPassword: !prev.newPassword,
+                      }))
+                    }
+                    className="absolute z-30 -translate-y-1/2 cursor-pointer right-4 top-1/2"
+                  >
+                    {resetPasswordShow.newPassword ? (
+                      <EyeIcon className="fill-gray-500 dark:fill-gray-400 size-5" />
+                    ) : (
+                      <EyeCloseIcon className="fill-gray-500 dark:fill-gray-400 size-5" />
+                    )}
+                  </span>
+                </div>
+                <div className="relative mb-5">
+                  <Input
+                    name="confirmPassword"
+                    type={
+                      resetPasswordShow.confirmPassword ? "text" : "password"
+                    }
+                    placeholder="Confirm password"
+                    onChange={handleResetPasswordValue}
+                    value={resetPasswordValue.confirmPassword}
+                  />
+                  <span
+                    onClick={() =>
+                      setResetPasswordShow((prev) => ({
+                        ...prev,
+                        confirmPassword: !prev.confirmPassword,
+                      }))
+                    }
+                    className="absolute z-30 -translate-y-1/2 cursor-pointer right-4 top-1/2"
+                  >
+                    {resetPasswordShow.confirmPassword ? (
+                      <EyeIcon className="fill-gray-500 dark:fill-gray-400 size-5" />
+                    ) : (
+                      <EyeCloseIcon className="fill-gray-500 dark:fill-gray-400 size-5" />
+                    )}
+                  </span>
+                </div>
+              </>
+            )}
+
+            {/* mail and otp button */}
+            {!isOtpVerified && (
+              <>
+                <button
+                  onClick={handleForgotPasswordOtp}
+                  disabled={forgotPasswordOtpMutation.isPending}
+                  className="flex items-center justify-center w-full px-4 py-3 text-sm font-medium text-white transition rounded-lg bg-brand-500 shadow-theme-xs hover:bg-brand-600"
+                >
+                  Verify OTP
+                </button>
+                <div className="mt-5">
+                  <p className="text-md font-normal text-center text-gray-700 dark:text-gray-400 sm:text-start">
+                    Did not get OTP? {""}
+                    <button
+                      className="text-brand-500 hover:text-brand-600 dark:text-brand-400 cursor-pointer"
+                      onClick={handleResendOtp}
+                      disabled={resendOtpMutation.isPending}
+                    >
+                      Resend Code
+                    </button>
+                  </p>
+                </div>
+              </>
+            )}
+
+            {/* reset password button */}
+            {isOtpVerified && (
+              <button
+                onClick={handleResetPassword}
+                disabled={resetPasswordMutation.isPending}
+                className="flex items-center justify-center w-full px-4 mt-8 mb-4 py-3 text-sm font-medium text-white transition rounded-lg bg-brand-500 shadow-theme-xs hover:bg-brand-600"
               >
-                {resetPasswordShow.newPassword ? (
-                  <EyeIcon className="fill-gray-500 dark:fill-gray-400 size-5" />
-                ) : (
-                  <EyeCloseIcon className="fill-gray-500 dark:fill-gray-400 size-5" />
-                )}
-              </span>
-            </div>
-            <div className="relative mb-5">
-              <Input
-                name="confirmPassword"
-                type={resetPasswordShow.confirmPassword ? "text" : "password"}
-                placeholder="Confirm password"
-                onChange={handleResetPasswordValue}
-                value={resetPasswordValue.confirmPassword}
-              />
-              <span
-                onClick={() =>
-                  setResetPasswordShow((prev) => ({
-                    ...prev,
-                    confirmPassword: !prev.confirmPassword,
-                  }))
-                }
-                className="absolute z-30 -translate-y-1/2 cursor-pointer right-4 top-1/2"
-              >
-                {resetPasswordShow.confirmPassword ? (
-                  <EyeIcon className="fill-gray-500 dark:fill-gray-400 size-5" />
-                ) : (
-                  <EyeCloseIcon className="fill-gray-500 dark:fill-gray-400 size-5" />
-                )}
-              </span>
-            </div>
-          </>
-        )}
-
-        {/* mail and otp button */}
-        {!isOtpVerified && (
-          <div className="flex justify-between items-center">
-
-          <button
-            onClick={handleForgotPasswordOtp}
-            disabled={forgotPasswordOtpMutation.isPending}
-            className="mb-2 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-            >
-            Verify OTP
-          </button>
-          <button
-          onClick={handleResendOtp}
-           className="underline underline-offset-2 cursor-pointer text-gray-700">Resend code</button>
-            </div>
-        )}
-
-        {/* reset password button */}
-        {isOtpVerified && (
-          <button
-            onClick={handleResetPassword}
-            disabled={resetPasswordMutation.isPending}
-            className="mb-2 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-          >
-            Reset Password
-          </button>
-        )}
-      </div>
-      <div className="fixed z-50 hidden bottom-6 right-6 sm:block">
-        <ThemeTogglerTwo />
+                Reset Password
+              </button>
+            )}
+          </div>
+        </ComponentCard>
       </div>
     </div>
   );

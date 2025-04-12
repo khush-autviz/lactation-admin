@@ -9,6 +9,7 @@ import { forgotPasswordMail, tenantLogin } from "../../api/tenants";
 import { Modal } from "../ui/modal";
 import { useAuthStore } from "../../store/authStore";
 import { toast } from "sonner";
+import { Loader } from "../ui/loader";
 
 export default function SignInForm() {
   const [showPassword, setShowPassword] = useState(false);
@@ -106,6 +107,7 @@ const getSubdomain = () => {
 
   return (
     <div className="flex flex-col flex-1">
+      {(tenantLoginMutation.isPending || forgotPasswordMailMutation.isPending) && <Loader />}
       <div className="flex flex-col justify-center flex-1 w-full max-w-md mx-auto">
         <div>
           <div className="mb-5 sm:mb-8">
