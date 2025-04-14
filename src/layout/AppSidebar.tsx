@@ -42,6 +42,14 @@ const navItems: NavItem[] = [
     path: "/profile",
   },
   {
+    name: "Create",
+    icon: <PageIcon />,
+    subItems: [
+      { name: "Roles", path: "/roles", pro: false },
+      { name: "User", path: "/error-404", pro: false },
+    ],
+  },
+  {
     name: "Forms",
     icon: <ListIcon />,
     subItems: [{ name: "Form Elements", path: "/form-elements", pro: false }],
@@ -306,7 +314,7 @@ const AppSidebar: React.FC = () => {
         <Link to="/">
           {isExpanded || isHovered || isMobileOpen ? (
             <>
-              <img
+              {/* <img
                 className="dark:hidden"
                 src="/images/logo/logo.svg"
                 alt="Logo"
@@ -319,7 +327,8 @@ const AppSidebar: React.FC = () => {
                 alt="Logo"
                 width={150}
                 height={40}
-              />
+              /> */}
+              <p className="text-blue-700 text-2xl font-bold">Lactation</p>
             </>
           ) : (
             <img

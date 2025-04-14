@@ -24,6 +24,7 @@ import {QueryClient, QueryClientProvider} from '@tanstack/react-query'
 import ForgotPassword from "./components/auth/ForgotPassword";
 import {Toaster} from 'sonner'
 import GetDomain from "./components/auth/GetDomain";
+import Roles from "./components/userManagement/Roles";
 
 export default function App() {
 
@@ -44,6 +45,10 @@ export default function App() {
               // </ProtectedRoute>
             }
           >
+
+            {/* User based */}
+            <Route path="/roles" element={<Roles />} />
+
             {/* Others Page */}
             <Route path="/profile" element={<UserProfiles />} />
             <Route path="/calendar" element={<Calendar />} />

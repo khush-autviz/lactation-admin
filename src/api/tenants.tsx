@@ -29,6 +29,18 @@ export const getUserProfile = async (data: any) => {
     return response
 }
 
+export const createTenantRole = async (data: any) => {
+    const response = await axios.post('/tenant/roles/', data)
+    return response
+}
+
+
+export const getTenantRole = async (data: any) => {
+    const response = await axios.get('/tenant/roles/', data)
+    return response
+}
+
+
 
 
 
