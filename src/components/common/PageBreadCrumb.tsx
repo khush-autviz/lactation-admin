@@ -16,9 +16,10 @@ const PageBreadcrumb: React.FC<BreadcrumbProps> = ({ pageTitle }) => {
       <nav>
         <ol className="flex items-center gap-1.5">
           <li>
-            <Link
+            {/* <Link */}
+            <span
               className="inline-flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400"
-              to="/"
+              // to="/"
             >
               Home
               <svg
@@ -37,7 +38,8 @@ const PageBreadcrumb: React.FC<BreadcrumbProps> = ({ pageTitle }) => {
                   strokeLinejoin="round"
                 />
               </svg>
-            </Link>
+              </span>
+            {/* </Link> */}
           </li>
           <li className="text-sm text-gray-800 dark:text-white/90">
             {pageTitle}

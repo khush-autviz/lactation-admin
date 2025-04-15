@@ -50,6 +50,10 @@ export default function VenueTypes() {
     },
   });
 
+  const handleMode = () => {
+    mode === "Create" ? setmode('Records') : setmode('Create')
+  }
+
   const handleCreateButton = () => {
     if (name.trim() === '') return toast.warning('Please enter the name')
     
@@ -66,36 +70,11 @@ export default function VenueTypes() {
       {/* {createRoleMutation.isPending && <Loader />} */}
       <div className=" rounded-2xl border border-gray-200 bg-white px-5 py-7 dark:border-gray-800 dark:bg-white/[0.03] xl:px-10 xl:py-12">
         <div className=" w-full ">
-          <div className="flex justify-between items-center">
-            <h3 className="mb-4 font-semibold text-gray-800 text-theme-xl dark:text-white/90 sm:text-2xl">
+          <div className="flex justify-between items-center mb-5">
+            <h3 className="font-semibold text-gray-800 text-theme-xl dark:text-white/90 sm:text-2xl">
               {mode}
             </h3>
-            <div className="relative inline-block">
-              <button
-                className="dropdown-toggle"
-                onClick={() => setisOpen(true)}
-              >
-                <MoreDotIcon className="text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 size-6" />
-              </button>
-              <Dropdown
-                isOpen={isOpen}
-                onClose={() => setisOpen(false)}
-                className="w-40 p-2"
-              >
-                <DropdownItem
-                  onItemClick={() => setmode("Create")}
-                  className="flex w-full font-normal text-left text-gray-500 rounded-lg hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-gray-300"
-                >
-                  Create
-                </DropdownItem>
-                <DropdownItem
-                  onItemClick={() => setmode("Show")}
-                  className="flex w-full font-normal text-left text-gray-500 rounded-lg hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-gray-300"
-                >
-                  Show
-                </DropdownItem>
-              </Dropdown>
-            </div>
+            <Button className="bg-orange-600 font-semibold px-10 hover:bg-orange-700" onClick={handleMode}>{mode === "Create"? "Records" : "Create"}</Button>
           </div>
         </div>
         {mode === "Create" && (
@@ -116,7 +95,7 @@ export default function VenueTypes() {
           </div>
         )}
 
-        {mode === "Show" && (
+        {mode === "Records" && (
           <div className="overflow-hidden rounded-xl border border-gray-300 bg-white dark:border-white/[0.05] dark:bg-white/[0.03]">
             <div className="max-w-full overflow-x-auto">
               <Table>

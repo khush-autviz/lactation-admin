@@ -12,9 +12,7 @@ import {
 } from "../../api/tenants";
 import { toast } from "sonner";
 import PageBreadcrumb from "../common/PageBreadCrumb";
-import { MoreDotIcon, PencilIcon, TrashBinIcon } from "../../icons";
-import { Dropdown } from "../ui/dropdown/Dropdown";
-import { DropdownItem } from "../ui/dropdown/DropdownItem";
+import { ErrorIcon, PencilIcon, TrashBinIcon } from "../../icons";
 import {
   Table,
   TableBody,
@@ -24,13 +22,13 @@ import {
 } from "../ui/table";
 import { Loader } from "../ui/loader";
 import { Modal } from "../ui/modal";
+import { getRolesPermissions } from "../../api/Lactation";
 
 export default function Roles() {
-  const [mode, setmode] = useState("Create");
+  const [mode, setmode] = useState("Records");
   const [isModalOpen, setisModalOpen] = useState(false);
   const [isDeleteModalOpen, setisDeleteModalOpen] = useState(false);
   const [selectedRoleId, setselectedRoleId] = useState<number | null>(null);
-  const [isOpen, setisOpen] = useState(false);
   const [formData, setformData] = useState({
     name: "",
     description: "",
@@ -59,7 +57,15 @@ export default function Roles() {
     refetchOnWindowFocus: false,
   });
 
-  // creates tenant roles
+  // fetches roles permissions
+  const { data: permissions, refetch: permissionsRefetch } = useQuery({
+    queryKey: ["permissions"],
+    queryFn: getRolesPermissions,
+    staleTime: 5 * 60 * 1000,
+    refetchOnWindowFocus: false,
+  });
+
+  // creates tenant roles mutation
   const createRoleMutation = useMutation({
     mutationFn: createTenantRole,
     onSuccess: (response) => {
@@ -85,8 +91,9 @@ export default function Roles() {
     onSuccess: (response) => {
       queryClient.invalidateQueries({ queryKey: ["tenantRoles"] });
       console.log("edit role sucess", response);
-      setformData({ name: "", description: "" });
+      // setformData({ name: "", description: "" });
       toast.success("Role Edited!");
+      setisModalOpen(false);
     },
     onError: (error: any) => {
       console.log("edit role error", error);
@@ -102,10 +109,9 @@ export default function Roles() {
   const deleteRoleMutation = useMutation({
     mutationFn: deleteTenantRole,
     onSuccess: async () => {
-      // Invalidate or refetch the roles list after successful deletion
-      // queryClient.invalidateQueries({ queryKey: ["deleteTenantRole"] });
       toast.success("Role deleted successfully!");
       setisModalOpen(false);
+      setisDeleteModalOpen(false);
       await allTenantsRefetch();
     },
     onError: (error: any) => {
@@ -122,11 +128,6 @@ export default function Roles() {
     if (formData.name === "" || formData.description === "")
       return toast.warning("Empty Fields!");
     createRoleMutation.mutateAsync(formData);
-  };
-
-  // edit pencil button
-  const handleEdit = (id: any) => {
-    setselectedRoleId(id);
   };
 
   // edit role button
@@ -146,7 +147,13 @@ export default function Roles() {
   const handleDeleteRole = () => {
     if (selectedRoleId) {
       deleteRoleMutation.mutateAsync(selectedRoleId);
-    }
+    } else return toast.error("Something went wrong"); // no role id is selected
+  };
+
+  //edit pencil button
+  const handleEditButton = (id: any) => {
+    setselectedRoleId(id);
+    setisModalOpen(true);
   };
 
   // to fetch a single role
@@ -160,47 +167,34 @@ export default function Roles() {
         .then((response) => {
           const { name, description } = response.data;
           seteditFormData({ name, description });
-          setisModalOpen(true); // open modal only after data is set
         });
     }
   }, [selectedRoleId]);
 
+  console.log("tenantrole", tenantsRole);
+
+  console.log("permissions", permissions);
+
   return (
     <div>
       <PageBreadcrumb pageTitle="Roles" />
-      {createRoleMutation.isPending && <Loader />}
+      {createRoleMutation.isPending && deleteRoleMutation.isPending && (
+        <Loader />
+      )}
       <div className=" rounded-2xl border border-gray-200 bg-white px-5 py-7 dark:border-gray-800 dark:bg-white/[0.03] xl:px-10 xl:py-12">
         <div className=" w-full ">
-          <div className="flex justify-between items-center">
-            <h3 className="mb-4 font-semibold text-gray-800 text-theme-xl dark:text-white/90 sm:text-2xl">
+          <div className="flex justify-between items-center mb-5">
+            <h3 className=" font-semibold text-gray-800 text-theme-xl dark:text-white/90 sm:text-2xl">
               {mode}
             </h3>
-            <div className="relative inline-block">
-              <button
-                className="dropdown-toggle"
-                onClick={() => setisOpen(true)}
-              >
-                <MoreDotIcon className="text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 size-6" />
-              </button>
-              <Dropdown
-                isOpen={isOpen}
-                onClose={() => setisOpen(false)}
-                className="w-40 p-2"
-              >
-                <DropdownItem
-                  onItemClick={() => setmode("Create")}
-                  className="flex w-full font-normal text-left text-gray-500 rounded-lg hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-gray-300"
-                >
-                  Create
-                </DropdownItem>
-                <DropdownItem
-                  onItemClick={() => setmode("Show")}
-                  className="flex w-full font-normal text-left text-gray-500 rounded-lg hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-gray-300"
-                >
-                  Show
-                </DropdownItem>
-              </Dropdown>
-            </div>
+            <Button
+              className="bg-orange-600 font-semibold px-10 hover:bg-orange-700"
+              onClick={() =>
+                mode === "Create" ? setmode("Records") : setmode("Create")
+              }
+            >
+              {mode === "Create" ? "Records" : "Create"}
+            </Button>
           </div>
         </div>
         {mode === "Create" && (
@@ -229,11 +223,13 @@ export default function Roles() {
                 placeholder="Enter the description of role"
               />
             </div>
-            <Button onClick={handleCreateRoleButton}>Create</Button>
+            <Button className="px-15" onClick={handleCreateRoleButton}>
+              Create
+            </Button>
           </div>
         )}
 
-        {mode === "Show" && (
+        {mode === "Records" && (
           <div className="overflow-hidden rounded-xl border border-gray-300 bg-white dark:border-white/[0.05] dark:bg-white/[0.03]">
             <div className="max-w-full overflow-x-auto">
               <Table>
@@ -256,6 +252,12 @@ export default function Roles() {
                       isHeader
                       className="px-5 py-3 font-medium text-gray-800 text-start text-theme-md dark:text-gray-400"
                     >
+                      Permissions
+                    </TableCell>
+                    <TableCell
+                      isHeader
+                      className="px-5 py-3 font-medium text-gray-800 text-start text-theme-md dark:text-gray-400"
+                    >
                       Actions
                     </TableCell>
                   </TableRow>
@@ -272,7 +274,26 @@ export default function Roles() {
                         {item.description ?? "No Description"}
                       </TableCell>
                       <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
-                        <button onClick={() => handleEdit(item.id)}>
+                        {permissions?.data.data.map(
+                          (role: any, roleIndex: any) => {
+                            console.log(item.id);
+                            if (item.id === role.id) {
+                              // console.log(role.id);
+
+                              // console.log(role.permissions.length);
+                              if (role.permissions.length === 0)
+                                return "No Perm";
+                              role.permissions.map(
+                                (perm: any, permIndex: any) => {
+                                  return perm;
+                                }
+                              );
+                            }
+                          }
+                        )}
+                      </TableCell>
+                      <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
+                        <button onClick={() => handleEditButton(item.id)}>
                           <PencilIcon className="text-blue-300 hover:text-blue-500 dark:hover:text-blue-300 size-5" />
                         </button>
                       </TableCell>
@@ -294,7 +315,7 @@ export default function Roles() {
         className="max-w-lg p-6 shadow-xl"
       >
         <div className="flex justify-between items-center mb-5">
-          <h2 className="text-xl font-semibold">Edit Role</h2>
+          <h2 className="text-xl text-gray-800 font-semibold">Edit Role</h2>
           <button onClick={() => setisDeleteModalOpen(true)}>
             <TrashBinIcon className="text-red-500 hover:text-red-600 dark:hover:text-red-500 size-6" />
           </button>
@@ -324,7 +345,12 @@ export default function Roles() {
               placeholder="Enter the description of role"
             />
           </div>
-          <Button onClick={handleEditRoleButton}>Edit</Button>
+          <Button
+            className="bg-green-600 hover:bg-green-700"
+            onClick={handleEditRoleButton}
+          >
+            Update
+          </Button>
         </div>
       </Modal>
 
@@ -336,16 +362,30 @@ export default function Roles() {
         showCloseButton={false}
         className="max-w-lg p-6 shadow-xl"
       >
-        <div>
-          <h2 className="text-xl font-semibold mb-5">Are you sure?</h2>
+        <div className="flex flex-col justify-between items-center mb-5">
+          <ErrorIcon className="size-17 mb-5" />
+
+          <h2 className="text-xl text-gray-700 mb-2">Are you sure?</h2>
+          <p className="text-gray-500 text-center max-w-sm mx-auto mb-5">
+            Do you really want to delete the role? This process cannot be
+            undone.
+          </p>
           <div className="space-y-6">
-            <div>
-            <Button onClick={handleDeleteRole} 
-              className="flex items-center justify-center w-full mb-8 mt-4 px-4 text-sm font-medium text-white transition rounded-lg bg-brand-500 shadow-theme-xs hover:bg-brand-600"
+            <div className="flex justify-between items-center mt-4 space-x-10">
+              <Button
+                onClick={handleDeleteRole}
+                className="px-10 text-[16px] font-medium text-white transition rounded-lg bg-red-500 shadow-theme-xs hover:bg-red-600"
                 disabled={deleteRoleMutation.isPending}
-                >
-                  Delete
-                </Button>
+              >
+                Delete
+              </Button>
+              <Button
+                onClick={() => setisDeleteModalOpen(false)}
+                className="px-10 text-[16px] font-medium text-white transition rounded-lg bg-brand-500 shadow-theme-xs hover:bg-brand-600"
+                disabled={deleteRoleMutation.isPending}
+              >
+                Cancel
+              </Button>
             </div>
           </div>
         </div>

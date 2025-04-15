@@ -28,6 +28,15 @@ export const getUserProfile = async () => {
     const response = await axios.get('/tenant/user/profile/')
     return response
 }
+export const getSingleUserProfile = async (param: Number) => {
+    const response = await axios.get(`/tenant/user/profile/${param}/`)
+    return response
+}
+
+export const editTenantUserProfile = async (param: Number,data: any) => {
+    const response = await axios.patch(`/tenant/user/profile/${param}/`, data)
+    return response
+}
 
 export const createTenantRole = async (data: any) => {
     const response = await axios.post('/tenant/roles/', data)
@@ -35,7 +44,7 @@ export const createTenantRole = async (data: any) => {
 }
 
 export const editTenantRole = async (param: Number,data: any) => {
-    const response = await axios.put(`/tenant/roles/${param}`, data)
+    const response = await axios.put(`/tenant/roles/${param}/`, data)
     return response
 }
 
@@ -63,6 +72,17 @@ export const getAllTenants = async () => {
     const response = await axios.get('/tenant/admin/')
     return response
 }
+
+export const activateTenant = async (param: Number) => {
+    const response = await axios.post(`/tenant/activate/${param}/`)
+    return response
+}
+
+export const deactivateTenant = async (param: Number) => {
+    const response = await axios.post(`/tenant/deactivate/${param}/`)
+    return response
+}
+
 
 
 

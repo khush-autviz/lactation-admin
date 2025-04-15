@@ -1,15 +1,17 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import PageBreadcrumb from "../common/PageBreadCrumb";
-import { Dropdown } from "../ui/dropdown/Dropdown";
-import { DropdownItem } from "../ui/dropdown/DropdownItem";
-import { MoreDotIcon, PencilIcon } from "../../icons";
+import { PencilIcon } from "../../icons";
 import Label from "../form/Label";
 import Input from "../form/input/InputField";
 import { toast } from "sonner";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
+  activateTenant,
   createTenantUser,
+  deactivateTenant,
+  editTenantUserProfile,
   getAllTenants,
+  getSingleUserProfile,
   getTenantRole,
 } from "../../api/tenants";
 import {
@@ -22,12 +24,13 @@ import {
 import { Loader } from "../ui/loader";
 import { Modal } from "../ui/modal";
 import Button from "../ui/button/Button";
+import Badge from "../ui/badge/Badge";
 
 export default function TenantUsers() {
   const [isModalOpen, setisModalOpen] = useState(false);
-  // const [selectedRoleId, setselectedRoleId] = useState<number | null>(null);
-  const [isOpen, setisOpen] = useState(false);
-  const [mode, setmode] = useState("Create");
+  const [isUserActive, setisUserActive] = useState(null);
+  const [selectedRoleId, setselectedRoleId] = useState<number | null>(null);
+  const [mode, setmode] = useState("Records");
   const queryClient = useQueryClient();
 
   const [formData, setformData] = useState({
@@ -38,7 +41,7 @@ export default function TenantUsers() {
     position_in_company: "",
     role: "",
   });
-  
+
   const [editFormData, seteditFormData] = useState({
     email: "",
     phone_number: "",
@@ -46,6 +49,7 @@ export default function TenantUsers() {
     last_name: "",
     position_in_company: "",
     role: "",
+    is_active: "",
   });
 
   //handle form changes
@@ -105,9 +109,9 @@ export default function TenantUsers() {
     refetchOnWindowFocus: true,
   });
 
-  // get all tenants mutation
+  // get all tenants api
   const { data: allTenants } = useQuery({
-    queryKey: ["AllTenants"],
+    queryKey: ["allTenants"],
     queryFn: getAllTenants,
     staleTime: 5 * 60 * 1000,
     refetchOnWindowFocus: false,
@@ -120,6 +124,14 @@ export default function TenantUsers() {
       queryClient.invalidateQueries({ queryKey: ["AllTenants"] });
       console.log("create tenant user success", response);
       toast.success("Tenant Created!");
+      setformData({
+        email: "",
+        first_name: "",
+        last_name: "",
+        phone_number: "",
+        position_in_company: "",
+        role: "",
+      });
     },
     onError: (error: any) => {
       console.log("create tenant user error", error);
@@ -131,47 +143,160 @@ export default function TenantUsers() {
     },
   });
 
-  // edit button
-  const handleEdit = (id: any) => {
-    setisModalOpen(true)
-  }
+  //edit tenant user mutation
+  const editTenantUserMutation = useMutation({
+    mutationFn: ({ id, payload }: { id: number; payload: any }) =>
+      editTenantUserProfile(id, payload),
+    onSuccess: (response) => {
+      queryClient.invalidateQueries({ queryKey: ["allTenants"] });
+      console.log("Update tenant user sucess", response);
+      // setformData({ name: "", description: "" });
+      toast.success("Tenant Updated!");
+      setisModalOpen(false);
+    },
+    onError: (error: any) => {
+      console.log("edit role error", error);
+      toast.error(
+        error?.response?.data?.message ||
+          error?.message ||
+          "Something went wrong"
+      );
+    },
+  });
+
+  // activate tenant mutation
+  const activateTenantMutation = useMutation({
+    mutationFn: ({ id }: { id: number }) => activateTenant(id),
+    onSuccess: (response) => {
+      queryClient.invalidateQueries({ queryKey: ["allTenants"] });
+      console.log("Update active status sucess", response);
+      // setformData({ name: "", description: "" });
+      toast.success("Status Updated!");
+      setisModalOpen(false);
+    },
+    onError: (error: any) => {
+      console.log("status update error", error);
+      toast.error(
+        error?.response?.data?.message ||
+          error?.message ||
+          "Something went wrong"
+      );
+    },
+  });
+
+  // activate tenant mutation
+  const deactivateTenantMutation = useMutation({
+    mutationFn: ({ id }: { id: number }) => deactivateTenant(id),
+    onSuccess: (response) => {
+      queryClient.invalidateQueries({ queryKey: ["allTenants"] });
+      console.log("Update deactive status sucess", response);
+      // setformData({ name: "", description: "" });
+      toast.success("Status Updated!");
+      setisModalOpen(false);
+    },
+    onError: (error: any) => {
+      console.log(" deactive status update error", error);
+      toast.error(
+        error?.response?.data?.message ||
+          error?.message ||
+          "Something went wrong"
+      );
+    },
+  });
+
+  // edit pencil button
+  const handleEditButton = (id: any) => {
+    setselectedRoleId(id);
+    setisModalOpen(true);
+  };
+
+  // handle edit user button
+  const handleEditUserProfile = (e: any) => {
+    e.preventDefault();
+
+    if (
+      editFormData.first_name.trim() === "" ||
+      editFormData.last_name.trim() === "" ||
+      editFormData.email.trim() === "" ||
+      editFormData.phone_number === "" ||
+      editFormData.position_in_company === ""
+    )
+      return toast.warning("Empty Fields!");
+
+    if (selectedRoleId) {
+      editTenantUserMutation.mutateAsync({
+        id: selectedRoleId,
+        payload: editFormData,
+      });
+    }
+  };
+
+  // handle active status
+  const handleActiveStatus = () => {
+    if (selectedRoleId) {
+      if (isUserActive) {
+        deactivateTenantMutation.mutateAsync({ id: selectedRoleId });
+      } else {
+        activateTenantMutation.mutateAsync({ id: selectedRoleId });
+      }
+    }
+  };
+
+  // to fetch a single role
+  useEffect(() => {
+    if (selectedRoleId) {
+      queryClient
+        .fetchQuery({
+          queryKey: ["singleTenantRole", selectedRoleId],
+          queryFn: () => getSingleUserProfile(selectedRoleId),
+        })
+        .then((response) => {
+          console.log("user single", response);
+
+          const {
+            email,
+            phone_number,
+            first_name,
+            last_name,
+            position_in_company,
+            role,
+            is_active,
+          } = response.data.data;
+          seteditFormData({
+            email,
+            phone_number,
+            first_name,
+            last_name,
+            position_in_company,
+            role,
+            is_active,
+          });
+          setisUserActive(is_active);
+        });
+    }
+  }, [selectedRoleId]);
 
   return (
     <div>
       <PageBreadcrumb pageTitle="Tenants" />
-      {createTenantMutation.isPending && <Loader />}
+      {(createTenantMutation.isPending ||
+        editTenantUserMutation.isPending ||
+        activateTenantMutation.isPending ||
+        deactivateTenantMutation.isPending) && <Loader />}
       <div className=" rounded-2xl border border-gray-200 bg-white px-5 py-7 dark:border-gray-800 dark:bg-white/[0.03] xl:px-10 ">
         <div className=" w-full ">
-          <div className="flex justify-between items-center">
-            <h3 className="mb-4 font-semibold text-gray-800 text-theme-xl dark:text-white/90 sm:text-2xl">
+          <div className="flex justify-between items-center mb-5">
+            <h3 className=" font-semibold text-gray-800 text-theme-xl dark:text-white/90 sm:text-2xl">
               {mode}
             </h3>
-            <div className="relative inline-block">
-              <button
-                className="dropdown-toggle"
-                onClick={() => setisOpen(true)}
-              >
-                <MoreDotIcon className="text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 size-6" />
-              </button>
-              <Dropdown
-                isOpen={isOpen}
-                onClose={() => setisOpen(false)}
-                className="w-40 p-2"
-              >
-                <DropdownItem
-                  onItemClick={() => setmode("Create")}
-                  className="flex w-full font-normal text-left text-gray-500 rounded-lg hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-gray-300"
-                >
-                  Create
-                </DropdownItem>
-                <DropdownItem
-                  onItemClick={() => setmode("Show")}
-                  className="flex w-full font-normal text-left text-gray-500 rounded-lg hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-gray-300"
-                >
-                  Show
-                </DropdownItem>
-              </Dropdown>
-            </div>
+            <Button
+              className="bg-orange-600 font-semibold px-10 hover:bg-orange-700"
+              onClick={() =>
+                mode === "Create" ? setmode("Records") : setmode("Create")
+              }
+            >
+              {mode === "Create" ? "Records" : "Create"}
+            </Button>
           </div>
           {mode === "Create" && (
             <form>
@@ -284,14 +409,14 @@ export default function TenantUsers() {
                 <button
                   onClick={handleRegistration}
                   disabled={createTenantMutation.isPending}
-                  className="flex items-center justify-center w-1/4 px-4 py-3 mt-12 text-sm font-medium text-white transition rounded-lg bg-brand-500 shadow-theme-xs hover:bg-brand-600"
+                  className="flex items-center justify-center w-1/4 px-4 py-3 mt-8 text-sm font-medium text-white transition rounded-lg bg-brand-500 shadow-theme-xs hover:bg-brand-600"
                 >
-                  Register
+                  Create
                 </button>
               </div>
             </form>
           )}
-          {mode === "Show" && (
+          {mode === "Records" && (
             <div className="overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-white/[0.05] dark:bg-white/[0.03]">
               <div className="max-w-full overflow-x-auto">
                 <Table>
@@ -332,6 +457,12 @@ export default function TenantUsers() {
                         isHeader
                         className="px-5 py-3 font-medium text-gray-600 text-start text-theme-md dark:text-gray-400"
                       >
+                        Status
+                      </TableCell>
+                      <TableCell
+                        isHeader
+                        className="px-5 py-3 font-medium text-gray-600 text-start text-theme-md dark:text-gray-400"
+                      >
                         Actions
                       </TableCell>
                     </TableRow>
@@ -358,7 +489,15 @@ export default function TenantUsers() {
                             {item?.role?.name ?? "No role"}
                           </TableCell>
                           <TableCell className="px-5 py-4 text-gray-500 text-start text-theme-sm dark:text-gray-400">
-                            <button onClick={() => handleEdit(item.id) }>
+                            <Badge
+                              size="sm"
+                              color={item.is_active ? "success" : "warning"}
+                            >
+                              {item.is_active ? "Active" : "Deactive"}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="px-5 py-4 text-gray-500 text-start text-theme-sm dark:text-gray-400">
+                            <button onClick={() => handleEditButton(item.id)}>
                               <PencilIcon className="text-blue-300 hover:text-blue-500 dark:hover:text-blue-300 size-5" />
                             </button>
                           </TableCell>
@@ -378,10 +517,17 @@ export default function TenantUsers() {
       <Modal
         isOpen={isModalOpen}
         onClose={() => setisModalOpen(false)}
-        showCloseButton={true}
+        showCloseButton={false}
         className="max-w-lg p-6 shadow-xl"
       >
-        <h2 className="text-xl font-semibold mb-5">Edit Role</h2>
+        <div className="flex justify-between items-center mb-5">
+          <h2 className="text-xl text-gray-800 font-semibold">Edit Tenant</h2>
+          <button onClick={handleActiveStatus}>
+            <Badge size="md" color={isUserActive ? "success" : "warning"}>
+              {isUserActive ? "Active" : "Deactive"}
+            </Badge>
+          </button>
+        </div>
         <form>
           <div className="space-y-5">
             <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
@@ -463,11 +609,7 @@ export default function TenantUsers() {
                   name="role"
                   value={editFormData.role}
                   onChange={handleEditFormChange}
-                  className={`h-11 w-full appearance-none rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 pr-11 text-sm shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:placeholder:text-white/30 dark:focus:border-brand-800 ${
-                    editFormData.role
-                      ? "text-gray-800 dark:text-white/90"
-                      : "text-gray-400 dark:text-blue-400"
-                  }`}
+                  className={`h-11 w-full text-gray-800 appearance-none rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 pr-11 text-sm shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:placeholder:text-white/30 dark:focus:border-brand-800`}
                 >
                   <option
                     value=""
@@ -490,11 +632,11 @@ export default function TenantUsers() {
             </div>
             {/* <!-- Button --> */}
             <button
-              onClick={handleRegistration}
-              disabled={createTenantMutation.isPending}
-              className="flex items-center justify-center w-1/4 px-4 py-3 mt-12 text-sm font-medium text-white transition rounded-lg bg-brand-500 shadow-theme-xs hover:bg-brand-600"
+              onClick={(e) => handleEditUserProfile(e)}
+              // disabled={createTenantMutation.isPending}
+              className="flex items-center justify-center w-1/4 px-4 py-3 mt-12 text-sm font-medium text-white transition rounded-lg bg-green-600 shadow-theme-xs hover:bg-green-700"
             >
-              Register
+              Update
             </button>
           </div>
         </form>
