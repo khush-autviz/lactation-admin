@@ -42,6 +42,15 @@ const navItems: NavItem[] = [
     path: "/profile",
   },
   {
+    name: "Create",
+    icon: <PageIcon />,
+    subItems: [
+      { name: "Roles", path: "/roles", pro: false },
+      { name: "Tenants", path: "/tenant-users", pro: false },
+      { name: "Venue Types", path: "/venue-types", pro: false },
+      { name: "Lactation Rooms", path: "/lactation-rooms", pro: false },
+    ]},
+  {
     name: "Forms",
     icon: <ListIcon />,
     subItems: [{ name: "Form Elements", path: "/form-elements", pro: false }],
@@ -55,7 +64,6 @@ const navItems: NavItem[] = [
     name: "Pages",
     icon: <PageIcon />,
     subItems: [
-      { name: "Tenants", path: "/tenant-users", pro: false },
       { name: "Blank Page", path: "/blank", pro: false },
       { name: "404 Error", path: "/error-404", pro: false },
     ],

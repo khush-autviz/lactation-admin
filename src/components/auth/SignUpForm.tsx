@@ -6,7 +6,7 @@ import Input from "../form/input/InputField";
 import Checkbox from "../form/input/Checkbox";
 import { useAuthStore } from "../../store/authStore";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { getTenantTypes, registerCompany } from "../../api/createOrganisation";
+import { getVenueTypes, registerCompany } from "../../api/createOrganisation";
 import { toast } from "sonner";
 
 export default function SignUpForm() {
@@ -26,9 +26,9 @@ export default function SignUpForm() {
 
 
   // fetching tenant types
-  const { data: tenantTypesData } = useQuery({
-    queryKey: ["tenantTypes"],
-    queryFn: getTenantTypes,
+  const { data: venueTypesData } = useQuery({
+    queryKey: ["venueTypes"],
+    queryFn: getVenueTypes,
     staleTime: 5 * 60 * 1000,
     refetchOnWindowFocus: false,
   });
@@ -219,7 +219,7 @@ export default function SignUpForm() {
                       >
                         Select a tenant
                       </option>
-                      {tenantTypesData?.data?.map((item: any) => (
+                      {venueTypesData?.data?.map((item: any) => (
                         <option
                           key={item.id}
                           value={item.id}

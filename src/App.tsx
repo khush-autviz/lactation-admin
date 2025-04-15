@@ -24,7 +24,10 @@ import {QueryClient, QueryClientProvider} from '@tanstack/react-query'
 import ForgotPassword from "./components/auth/ForgotPassword";
 import {Toaster} from 'sonner'
 import GetDomain from "./components/auth/GetDomain";
-import TenantUsers from "./components/userManagement/tenantUsers";
+import Roles from "./components/userManagement/Roles";
+import TenantUsers from "./components/userManagement/TenantUsers";
+import VenueTypes from "./components/userManagement/VenueTypes";
+import LactationRooms from "./components/userManagement/LactationRooms";
 
 export default function App() {
 
@@ -51,6 +54,9 @@ export default function App() {
             <Route path="/blank" element={<Blank />} />
             <Route path="/home" element={<Home />} />
             <Route path="/tenant-users" element={<TenantUsers />} />
+            <Route path="/roles" element={<Roles />} />
+            <Route path="/venue-types" element={<VenueTypes />} />
+            <Route path="/lactation-rooms" element={<LactationRooms />} />
 
             {/* Forms */}
             <Route path="/form-elements" element={<FormElements />} />

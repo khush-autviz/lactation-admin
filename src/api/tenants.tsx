@@ -24,18 +24,43 @@ export const getDomain = async (data: any) => {
     return response
 }
 
-export const getUserProfile = async (data: any) => {
-    const response = await axios.get('/tenant/user/profile/', data)
+export const getUserProfile = async () => {
+    const response = await axios.get('/tenant/user/profile/')
+    return response
+}
+
+export const createTenantRole = async (data: any) => {
+    const response = await axios.post('/tenant/roles/', data)
+    return response
+}
+
+export const editTenantRole = async (param: Number,data: any) => {
+    const response = await axios.put(`/tenant/roles/${param}`, data)
+    return response
+}
+
+export const getTenantRole = async () => {
+    const response = await axios.get('/tenant/roles/')
+    return response
+}
+
+export const deleteTenantRole = async (param: Number) => {
+    const response = await axios.delete(`/tenant/roles/${param}/`)
+    return response
+}
+
+export const getSingleTenantRole = async (param: Number) => {
+    const response = await axios.get(`/tenant/roles/${param}`)
     return response
 }
 
 export const createTenantUser = async (data: any) => {
-    const response = await axios.post('/tenant/user/profile/', data)
+    const response = await axios.post('/tenant/users/create/', data)
     return response
 }
 
-export const getAllTenants = async (data: any) => {
-    const response = await axios.get('/tenant/admin/', data)
+export const getAllTenants = async () => {
+    const response = await axios.get('/tenant/admin/')
     return response
 }
 
