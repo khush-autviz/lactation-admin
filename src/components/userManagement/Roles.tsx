@@ -298,7 +298,7 @@ export default function Roles() {
             </Button>
           </div>
         </div>
-        
+
         {mode === "Create" && (
           <div className="space-y-6">
             <div>
@@ -331,9 +331,7 @@ export default function Roles() {
           </div>
         )}
 
-          
         {mode === "Records" && (
-          
           <div className="overflow-hidden rounded-xl border border-gray-300 bg-white dark:border-white/[0.05] dark:bg-white/[0.03]">
             <div className="max-w-full overflow-x-auto">
               <Table>
@@ -381,7 +379,7 @@ export default function Roles() {
                       <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
                         {item.description ?? "No Description"}
                       </TableCell>
-                      <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
+                      <TableCell className="px-4 max-w-[200px] py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
                         {item.name === "admin" ? (
                           <Badge size="sm" color="success">
                             admin
@@ -404,13 +402,15 @@ export default function Roles() {
                                 return role.permissions.map(
                                   (perm: any, permIndex: any) => {
                                     return (
-                                      <Badge
-                                        key={permIndex}
-                                        size="sm"
-                                        color="info"
-                                      >
-                                        {perm.codename}
-                                      </Badge>
+                                      <div className="mb-2"> 
+                                        <Badge
+                                          key={permIndex}
+                                          size="sm"
+                                          color="info"
+                                        >
+                                          {perm.codename}
+                                        </Badge>
+                                      </div>
                                     );
                                   }
                                 );
@@ -438,7 +438,6 @@ export default function Roles() {
             </div>
           </div>
         )}
-
       </div>
 
       {/* EDIT MODAL */}
@@ -491,8 +490,13 @@ export default function Roles() {
 
       {/* Delete Modal */}
 
-      <DeleteModal isOpen={isDeleteModalOpen} onClose={() => setisDeleteModalOpen(false)} text="role" isLoading={deleteRoleMutation.isPending} onConfirm={handleDeleteRole} />
-
+      <DeleteModal
+        isOpen={isDeleteModalOpen}
+        onClose={() => setisDeleteModalOpen(false)}
+        text="role"
+        isLoading={deleteRoleMutation.isPending}
+        onConfirm={handleDeleteRole}
+      />
 
       {/* Permissions modal */}
 
@@ -512,7 +516,6 @@ export default function Roles() {
           <div className="mb-3">
             {rolePermissions?.data?.data?.map((role: any, roleIndex: any) => {
               if (role.id === selectedRoleId) {
-
                 if (role.permissions.length === 0) {
                   return (
                     <Badge key={roleIndex} size="sm" color="error">
@@ -521,10 +524,12 @@ export default function Roles() {
                   );
                 }
                 return role?.permissions?.map((perm: any, permIndex: any) => {
-
                   return (
-                    <div key={permIndex} className="flex justify-between items-center mb-2">
-                      <Badge  size="md" color="info">
+                    <div
+                      key={permIndex}
+                      className="flex justify-between items-center mb-2"
+                    >
+                      <Badge size="md" color="info">
                         {perm.codename}
                       </Badge>
                       <button

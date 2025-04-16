@@ -51,7 +51,7 @@ export const BigModal: React.FC<ModalProps> = ({
 
   const contentClasses = isFullscreen
     ? "w-full h-full"
-    : "relative w-[95vw] max-w-[1500px] min-w-[1000px] p-8 rounded-2xl bg-white dark:bg-gray-900";
+    : "relative w-[95vw] max-w-[1500px] min-w-[1000px] overflow-y-auto max-h-[500px] p-8 rounded-2xl bg-white dark:bg-gray-900";
 
   return (
     <div className="fixed inset-0 flex items-center justify-center overflow-y-auto p-8 modal z-99999 w-screen h-screen">
