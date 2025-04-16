@@ -21,6 +21,11 @@ export const EditLactationRoom = async (param: Number,data: any) => {
     return response
 }
 
+export const deleteLactationRoom = async (param: Number) => {
+    const response = await axios.delete(`/lactation/room/${param}/`)
+    return response
+}
+
 export const getAllPermissions = async () => {
     const response = await axios.get('/lactation/permissions/')
     return response
@@ -38,5 +43,15 @@ export const assignPermissions = async (data: any) => {
 
 export const unassignPermissions = async (data: any) => {
     const response = await axios.post('/lactation/unassign-role-permissions/', data)
+    return response
+}
+
+export const getSlotsOfSpecificRoom = async (param: Number) => {
+    const response = await axios.get(`/lactation/room-slots/by_room/?room_id=${param}`)
+    return response
+}
+
+export const createSlots = async (data: any) => {
+    const response = await axios.post(`/lactation/room-slots/`, data)
     return response
 }

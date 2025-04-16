@@ -13,7 +13,6 @@ import {
 import { toast } from "sonner";
 import PageBreadcrumb from "../common/PageBreadCrumb";
 import {
-  CheckCircleIcon,
   CheckLineIcon,
   ErrorIcon,
   PencilIcon,
@@ -35,6 +34,7 @@ import {
   unassignPermissions,
 } from "../../api/Lactation";
 import Badge from "../ui/badge/Badge";
+import DeleteModal from "../ui/DeleteModal";
 
 export default function Roles() {
   const [mode, setmode] = useState("Records");
@@ -213,11 +213,11 @@ export default function Roles() {
   // assign permissions button
   const handleAssignPermissions = (id: any) => {
     // console.log(permissionIds);
-    
+
     if (selectedRoleId) {
       assignPermissionMutation.mutateAsync({
         role_id: selectedRoleId,
-        permission_ids: [id],
+        permission_ids: [...permissionIds, id],
       });
     }
   };
@@ -258,11 +258,21 @@ export default function Roles() {
     }
   }, [selectedRoleId]);
 
-  // console.log("tenantrole", tenantsRole);
+  // to store permission ids to pass in assignpermission mutation
+  useEffect(() => {
+    if (!selectedRoleId || !rolePermissions) return;
 
-  // console.log("role permissions", rolePermissions);
+    const selectedRole = rolePermissions.data.data.find(
+      (role: any) => role.id === selectedRoleId
+    );
 
-  // console.log("all permissions", allPermissions);
+    if (selectedRole) {
+      const ids = selectedRole.permissions.map((perm: any) => perm.id);
+      setPermissionIds(ids);
+    }
+  }, [selectedRoleId, rolePermissions]);
+
+  console.log("perm id", permissionIds);
 
   return (
     <div>
@@ -288,6 +298,7 @@ export default function Roles() {
             </Button>
           </div>
         </div>
+        
         {mode === "Create" && (
           <div className="space-y-6">
             <div>
@@ -320,11 +331,12 @@ export default function Roles() {
           </div>
         )}
 
+          
         {mode === "Records" && (
+          
           <div className="overflow-hidden rounded-xl border border-gray-300 bg-white dark:border-white/[0.05] dark:bg-white/[0.03]">
             <div className="max-w-full overflow-x-auto">
               <Table>
-                {/* Table Header */}
                 <TableHeader className="border-b border-gray-300 dark:border-white/[0.05]">
                   <TableRow>
                     <TableCell
@@ -360,7 +372,6 @@ export default function Roles() {
                   </TableRow>
                 </TableHeader>
 
-                {/* Table Body */}
                 <TableBody className="divide-y divide-gray-200 dark:divide-white/[0.05]">
                   {tenantsRole?.data.map((item: any, index: any) => (
                     <TableRow key={index}>
@@ -427,6 +438,7 @@ export default function Roles() {
             </div>
           </div>
         )}
+
       </div>
 
       {/* EDIT MODAL */}
@@ -479,40 +491,8 @@ export default function Roles() {
 
       {/* Delete Modal */}
 
-      <Modal
-        isOpen={isDeleteModalOpen}
-        onClose={() => setisDeleteModalOpen(false)}
-        showCloseButton={false}
-        className="max-w-lg p-6 shadow-xl"
-      >
-        <div className="flex flex-col justify-between items-center mb-5">
-          <ErrorIcon className="size-17 mb-5" />
+      <DeleteModal isOpen={isDeleteModalOpen} onClose={() => setisDeleteModalOpen(false)} text="role" isLoading={deleteRoleMutation.isPending} onConfirm={handleDeleteRole} />
 
-          <h2 className="text-xl text-gray-700 mb-2">Are you sure?</h2>
-          <p className="text-gray-500 text-center max-w-sm mx-auto mb-5">
-            Do you really want to delete the role? This process cannot be
-            undone.
-          </p>
-          <div className="space-y-6">
-            <div className="flex justify-between items-center mt-4 space-x-10">
-              <Button
-                onClick={handleDeleteRole}
-                className="px-10 text-[16px] font-medium text-white transition rounded-lg bg-red-500 shadow-theme-xs hover:bg-red-600"
-                disabled={deleteRoleMutation.isPending}
-              >
-                Delete
-              </Button>
-              <Button
-                onClick={() => setisDeleteModalOpen(false)}
-                className="px-10 text-[16px] font-medium text-white transition rounded-lg bg-brand-500 shadow-theme-xs hover:bg-brand-600"
-                disabled={deleteRoleMutation.isPending}
-              >
-                Cancel
-              </Button>
-            </div>
-          </div>
-        </div>
-      </Modal>
 
       {/* Permissions modal */}
 
@@ -528,12 +508,10 @@ export default function Roles() {
           </h2>
         </div>
         <div>
-          {/* permissions allowed */}
           <h3 className="text-gray-500 text-lg font-semibold mb-3">Assigned</h3>
           <div className="mb-3">
-            {rolePermissions?.data.data.map((role: any, roleIndex: any) => {
+            {rolePermissions?.data?.data?.map((role: any, roleIndex: any) => {
               if (role.id === selectedRoleId) {
-                console.log("perm dsnkjv", role);
 
                 if (role.permissions.length === 0) {
                   return (
@@ -542,12 +520,11 @@ export default function Roles() {
                     </Badge>
                   );
                 }
-                return role.permissions.map((perm: any, permIndex: any) => {
-                  console.log(perm.codename);
+                return role?.permissions?.map((perm: any, permIndex: any) => {
 
                   return (
-                    <div className="flex justify-between items-center mb-2">
-                      <Badge key={permIndex} size="md" color="info">
+                    <div key={permIndex} className="flex justify-between items-center mb-2">
+                      <Badge  size="md" color="info">
                         {perm.codename}
                       </Badge>
                       <button
@@ -562,102 +539,51 @@ export default function Roles() {
             })}
           </div>
 
-          {/* set permissions */}
           <h3 className="text-gray-500 text-lg font-semibold mb-3">
             Set Permissions
           </h3>
 
-          {/* <div className="mb-3">
-            {allPermissions?.data.map((item: any, index: any) => {
-              {rolePermissions?.data.data.map((role: any, roleIndex: any) => {
-                if (role.id === selectedRoleId) {
-  
-                  if (role.permissions.length === 0) {
-                    return (
-                      <Badge key={roleIndex} size="sm" color="error">
-                        No Permissions
-                      </Badge>
-                    );
-                  }
-                  return role.permissions.map((perm: any, permIndex: any) => {
-                    if (item.id !== perm.id) {
-                      
-                      
-                      return (
-                        <div className="flex justify-between items-center mb-2">
-                        <Badge key={permIndex} size="md" color="info">
-                          {perm.codename}
-                        </Badge>
-                        <button
-                          onClick={() => handleUnassignPermissions(perm.id)}
-                          >
-                          <TrashBinIcon className="text-red-500 hover:text-red-600 dark:hover:text-red-500 size-5" />
-                        </button>
-                      </div>
-                    );
-                  });
-                }
-                }
-            }
-          </div> */}
           <div className="mb-3">
-            {allPermissions?.data.map((item: any, index: number) =>
-              rolePermissions?.data.data.map((role: any, roleIndex: number) => {
-                if (role.id === selectedRoleId) {
-                  if (role.permissions.length === 0) {
-                    return (
-                      <div
-                        key={`perm-${index}`}
-                        className="flex justify-between items-center mb-2"
-                      >
-                        <Badge size="md" color="info">
-                          {item.codename}
-                        </Badge>
-                        <button
-                          onClick={() => handleAssignPermissions(item.id)}
-                        >
-                          <CheckLineIcon className="text-green-500 hover:text-green-600 dark:hover:text-green-500 size-5" />
-                        </button>
-                      </div>
-                    );
-                  }
+            {(() => {
+              const selectedRole = rolePermissions?.data.data.find(
+                (role: any) => role.id === selectedRoleId
+              );
 
-                  return role.permissions.map(
-                    (perm: any, permIndex: number) => {
-                      
-                      // setPermissionIds([...permissionIds,perm.id])
-                      if (item.id !== perm.id) {
-                        return (
-                          <div
-                            key={`perm-${permIndex}`}
-                            className="flex justify-between items-center mb-2"
-                          >
-                            <Badge size="md" color="info">
-                              {item.codename}
-                            </Badge>
-                            <button
-                              onClick={() => handleAssignPermissions(item.id)}
-                            >
-                              <CheckLineIcon className="text-green-500 hover:text-green-600 dark:hover:text-green-500 size-5" />
-                            </button>
-                          </div>
-                        );
-                      }
-                      return null;
-                    }
-                  );
-                }
-                return null;
-              })
-            )}
+              const assignedPermissionIds = selectedRole
+                ? selectedRole.permissions.map((perm: any) => perm.id)
+                : [];
+
+              const unassignedPermissionsArray = allPermissions?.data.filter(
+                (perm: any) => !assignedPermissionIds.includes(perm.id)
+              );
+
+              console.log("length", unassignedPermissionsArray);
+
+              if (unassignedPermissionsArray?.length === 0) {
+                return (
+                  <Badge size="md" color="error">
+                    No Permissions
+                  </Badge>
+                );
+              }
+
+              return unassignedPermissionsArray?.map(
+                (item: any, index: number) => (
+                  <div
+                    key={`perm-${index}`}
+                    className="flex justify-between items-center mb-2"
+                  >
+                    <Badge size="md" color="info">
+                      {item.codename}
+                    </Badge>
+                    <button onClick={() => handleAssignPermissions(item.id)}>
+                      <CheckLineIcon className="text-green-500 hover:text-green-600 dark:hover:text-green-500 size-5" />
+                    </button>
+                  </div>
+                )
+              );
+            })()}
           </div>
-
-          <Button
-            className="bg-green-600 hover:bg-green-700"
-            onClick={handleEditRoleButton}
-          >
-            Update
-          </Button>
         </div>
       </Modal>
     </div>

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import PageBreadcrumb from "../common/PageBreadCrumb";
-import { PencilIcon } from "../../icons";
+import { CalenderIcon, ErrorIcon, PencilIcon, TrashBinIcon } from "../../icons";
 import Label from "../form/Label";
 import Input from "../form/input/InputField";
 import { toast } from "sonner";
@@ -15,19 +15,47 @@ import {
 import { Loader } from "../ui/loader";
 import {
   createLactationRoom,
+  createSlots,
+  deleteLactationRoom,
   EditLactationRoom,
   getLactationRoom,
   getSingleLactationRoom,
+  getSlotsOfSpecificRoom,
 } from "../../api/Lactation";
 import Badge from "../ui/badge/Badge";
 import { Modal } from "../ui/modal";
 import Button from "../ui/button/Button";
+import { BigModal } from "../ui/bigModal";
+import DeleteModal from "../ui/DeleteModal";
 
 export default function LactationRooms() {
   const [isModalOpen, setisModalOpen] = useState(false);
+  const [isDeleteModalOpen, setisDeleteModalOpen] = useState(false);
+  const [slotsArray, setslotsArray] = useState([]);
+  const [isSlotModalOpen, setisSlotModalOpen] = useState(false);
   const [selectedRoleId, setselectedRoleId] = useState();
   const [mode, setmode] = useState("Records");
+  const [slotMode, setslotMode] = useState("Records");
   const queryClient = useQueryClient();
+
+  const [times, setTimes] = useState({
+    start_time: "",
+    end_time: "",
+  });
+
+  const handleTimeChange = (e: any) => {
+    const { name, value } = e.target;
+
+    // Validates full HH:mm format from 00:00 to 23:59
+    const isValid = /^([01]\d|2[0-3]):([0-5]\d)$/.test(value);
+
+    if (isValid || value === "") {
+      setTimes((prev) => ({
+        ...prev,
+        [name]: value,
+      }));
+    }
+  };
 
   const [formData, setformData] = useState({
     name: "",
@@ -133,6 +161,49 @@ export default function LactationRooms() {
     },
   });
 
+  // delete lactation room mutation
+  const deleteLactationRoomMutation = useMutation({
+    mutationFn: deleteLactationRoom,
+    onSuccess: async () => {
+      toast.success("Room deleted successfully!");
+      setisModalOpen(false);
+      setisDeleteModalOpen(false);
+      // await allTenantsRefetch();
+    },
+    onError: (error: any) => {
+      toast.error(
+        error?.response?.data?.message ||
+          error?.message ||
+          "Failed to delete room"
+      );
+    },
+  });
+
+  // create slots  mutation
+  const createSlotsMutation = useMutation({
+    mutationFn: createSlots,
+    onSuccess: (response) => {
+      // queryClient.invalidateQueries({ queryKey: ["slotsOfSpecificRoom"] });
+      queryClient.invalidateQueries({
+        queryKey: ["slotsOfSpecificRoom", selectedRoleId],
+      });
+      queryClient.refetchQueries({
+        queryKey: ["slotsOfSpecificRoom", selectedRoleId],
+      });
+      console.log("create slot success", response);
+      toast.success("Slot Created!");
+      setslotMode("Records");
+    },
+    onError: (error: any) => {
+      console.log("create slot error", error);
+      toast.error(
+        error?.response?.data?.message ||
+          error?.message ||
+          "Something went wrong"
+      );
+    },
+  });
+
   // register button
   const handleRegistration = async (e: any) => {
     e.preventDefault();
@@ -170,13 +241,44 @@ export default function LactationRooms() {
     }
   };
 
+  //delete role button
+  const handleDeleteRoleButton = () => {
+    if (selectedRoleId) {
+      deleteLactationRoomMutation.mutateAsync(selectedRoleId);
+    } else return toast.error("Something went wrong"); // no role id is selected
+  }
+
   // edit pencil button
   const handleEditButton = (id: any) => {
     setselectedRoleId(id);
     setisModalOpen(true);
   };
 
-  // to fetch a single role
+  // opens slot button
+  const handleSlotButton = (id: any) => {
+    setselectedRoleId(id);
+    setisSlotModalOpen(true);
+  };
+
+  // create slot button
+  const handleCreateSlotButton = () => {
+    if (times.start_time === "" && times.end_time === "")
+      return toast.warning("Empty Fields!");
+
+    if (selectedRoleId) {
+      createSlotsMutation.mutateAsync({
+        ...times,
+        lactation_room: selectedRoleId,
+      });
+    } else return toast.error("Something Went Wrong!");
+  };
+
+  // delete slot button
+  const handleSlotDeleteButton = (id: Number) => {
+
+  }
+
+  // to fetch a single room info
   useEffect(() => {
     if (selectedRoleId) {
       queryClient
@@ -210,11 +312,33 @@ export default function LactationRooms() {
     }
   }, [selectedRoleId]);
 
+  // to fetch slots of specific room
+  useEffect(() => {
+    if (selectedRoleId) {
+      queryClient
+        .fetchQuery({
+          queryKey: ["slotsOfSpecificRoom", selectedRoleId],
+          queryFn: () => getSlotsOfSpecificRoom(selectedRoleId),
+        })
+        .then((response) => {
+          console.log("sel role", selectedRoleId);
+          setslotsArray(response.data.data.slots);
+
+          console.log("specific room slot", response);
+
+          // const { name, description } = response.data;
+          // seteditFormData({ name, description });
+        });
+    }
+  }, [selectedRoleId]);
+
+  console.log("slots array", slotsArray);
+
   return (
     <div>
       <PageBreadcrumb pageTitle="Lactation Room" />
       {(createLactationRoomMutation.isPending ||
-        editLactationRoomMutation.isPending) && <Loader />}
+        editLactationRoomMutation.isPending || deleteLactationRoomMutation.isPending) && <Loader />}
       <div className=" rounded-2xl border border-gray-200 bg-white px-5 py-7 dark:border-gray-800 dark:bg-white/[0.03] xl:px-10 ">
         <div className=" w-full ">
           <div className="mb-5 flex justify-between items-center">
@@ -413,6 +537,12 @@ export default function LactationRooms() {
                         isHeader
                         className="px-5 py-3 font-medium text-gray-600 text-start text-theme-md dark:text-gray-400"
                       >
+                        Slots
+                      </TableCell>
+                      <TableCell
+                        isHeader
+                        className="px-5 py-3 font-medium text-gray-600 text-start text-theme-md dark:text-gray-400"
+                      >
                         Available
                       </TableCell>
                       <TableCell
@@ -442,14 +572,19 @@ export default function LactationRooms() {
                             size="sm"
                             color={item.is_active ? "success" : "warning"}
                           >
-                            {item.is_active ? "True" : "False"}
+                            {item.is_active ? "Active" : "Inactive"}
                           </Badge>
                         </TableCell>
                         <TableCell className="px-5 py-4 text-gray-500 text-start text-theme-sm dark:text-gray-400">
                           {item.amenities}
                         </TableCell>
+                        <TableCell className="px-4 py-3 text-gray-500 text-center text-theme-sm dark:text-gray-400">
+                          <button onClick={() => handleSlotButton(item.id)}>
+                            <CalenderIcon className="text-green-400 hover:text-green-500 dark:hover:text-green-300 size-5" />
+                          </button>
+                        </TableCell>
                         <TableCell className="px-5 py-4 text-gray-500 text-start text-theme-sm dark:text-gray-400">
-                        <Badge
+                          <Badge
                             size="sm"
                             color={item.is_available ? "success" : "warning"}
                           >
@@ -479,7 +614,13 @@ export default function LactationRooms() {
         showCloseButton={false}
         className="max-w-lg p-6 shadow-xl"
       >
-        <h2 className="text-xl text-gray-800 font-semibold mb-5 ">Edit Room</h2>
+        {/* <h2 className="text-xl text-gray-800 font-semibold mb-5 ">Edit Room</h2> */}
+        <div className="flex justify-between items-center mb-5">
+          <h2 className="text-xl text-gray-800 font-semibold">Edit Room</h2>
+          <button onClick={() => setisDeleteModalOpen(true)}>
+            <TrashBinIcon className="text-red-500 hover:text-red-600 dark:hover:text-red-500 size-6" />
+          </button>
+        </div>
         {/* <form> */}
         <div className="space-y-5">
           <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
@@ -615,6 +756,181 @@ export default function LactationRooms() {
         </div>
         {/* </form> */}
       </Modal>
+
+      {/* Slot Modal */}
+
+      <BigModal
+        isOpen={isSlotModalOpen}
+        onClose={() => setisSlotModalOpen(false)}
+        showCloseButton={false}
+        className="max-w-lg p-6 shadow-xl"
+      >
+        <div className="flex justify-between items_center mb-5">
+          <h2 className="text-xl text-gray-800 font-semibold ">{slotMode}</h2>
+          <Button
+            size="sm"
+            className="bg-green-600 font-semibold px-10 hover:bg-green-700"
+            onClick={() =>
+              slotMode === "Create"
+                ? setslotMode("Records")
+                : setslotMode("Create")
+            }
+          >
+            {slotMode === "Create" ? "Records" : "Create Slot"}
+          </Button>
+        </div>
+
+        {slotMode === "Records" && (
+          <Table>
+            {/* Table Header */}
+            <TableHeader className="border-b border-gray-100 dark:border-white/[0.05]">
+              <TableRow>
+                <TableCell
+                  isHeader
+                  className="px-5 py-4 font-medium text-gray-600 text-start text-theme-md dark:text-gray-400"
+                >
+                  Start
+                </TableCell>
+                <TableCell
+                  isHeader
+                  className="px-5 py-3 font-medium text-gray-600 text-start text-theme-md dark:text-gray-400"
+                >
+                  End
+                </TableCell>
+                <TableCell
+                  isHeader
+                  className="px-5 py-4 font-medium text-gray-600 text-start text-theme-md dark:text-gray-400"
+                >
+                  Status
+                </TableCell>
+                <TableCell
+                  isHeader
+                  className="px-5 py-3 font-medium text-gray-600 text-start text-theme-md dark:text-gray-400"
+                >
+                  Filled
+                </TableCell>
+                <TableCell
+                  isHeader
+                  className="px-5 py-4 font-medium text-gray-600 text-start text-theme-md dark:text-gray-400"
+                >
+                  Active Bookings
+                </TableCell>
+                <TableCell
+                  isHeader
+                  className="px-5 py-3 font-medium text-gray-600 text-start text-theme-md dark:text-gray-400"
+                >
+                  Cancelled Bookings
+                </TableCell>
+                <TableCell
+                  isHeader
+                  className="px-5 py-4 font-medium text-gray-600 text-start text-theme-md dark:text-gray-400"
+                >
+                  Capacity
+                </TableCell>
+                <TableCell
+                  isHeader
+                  className="px-5 py-3 font-medium text-gray-600 text-start text-theme-md dark:text-gray-400"
+                >
+                  Remaining
+                </TableCell>
+                <TableCell
+                  isHeader
+                  className="px-5 py-3 font-medium text-gray-600 text-start text-theme-md dark:text-gray-400"
+                >
+                  Delete
+                </TableCell>
+              </TableRow>
+            </TableHeader>
+            <TableBody className="divide-y divide-gray-100 dark:divide-white/[0.05]">
+              {slotsArray.map((item: any, index: any) => (
+                <TableRow key={index}>
+                  <TableCell className="px-5 py-4 text-gray-500 text-start text-theme-sm dark:text-gray-400">
+                    {item.start_time}
+                  </TableCell>
+                  <TableCell className="px-5 py-4 text-gray-500 text-start text-theme-sm dark:text-gray-400">
+                    {item.end_time}
+                  </TableCell>
+                  <TableCell className="px-5 py-4 text-gray-500 text-start text-theme-sm dark:text-gray-400 ">
+                    <Badge
+                      size="sm"
+                      color={item.is_available ? "success" : "warning"}
+                    >
+                      {item.is_available ? "Available" : "Unavailable"}
+                    </Badge>
+                  </TableCell>
+                  <TableCell className="px-5 py-4 text-gray-500 text-start text-theme-sm dark:text-gray-400">
+                    <Badge
+                      size="sm"
+                      color={item.is_available ? "success" : "warning"}
+                    >
+                      {item.is_fully_booked ? "Full" : "No"}
+                    </Badge>
+                  </TableCell>
+                  <TableCell className="px-5 py-4 text-gray-500 text-center text-theme-sm dark:text-gray-400">
+                    {item.active_bookings}
+                  </TableCell>
+                  <TableCell className="px-4 py-3 text-gray-500 text-center text-theme-sm dark:text-gray-400">
+                    {item.cancelled_bookings}
+                  </TableCell>
+                  <TableCell className="px-5 py-4 text-gray-500 text-center text-theme-sm dark:text-gray-400">
+                    {item.max_capacity}
+                  </TableCell>
+                  <TableCell className="px-5 py-4 text-gray-500 text-center text-theme-sm dark:text-gray-400">
+                    {item.remaining_capacity}
+                  </TableCell>
+                  <TableCell className="px-5 py-4 text-gray-500 text-center text-theme-sm dark:text-gray-400">
+                    <button onClick={() => handleSlotDeleteButton(item.id)}>
+                      <TrashBinIcon className="text-red-500 hover:text-red-600 dark:hover:text-red-500 size-6" />
+                    </button>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        )}
+        {slotMode === "Create" && (
+          <div className="space-y-6">
+            <div>
+              <Label>
+                Start Time (24 hour format)
+                <span className="text-error-500">*</span>
+              </Label>
+              <Input
+                name="start_time"
+                onChange={handleTimeChange}
+                type="time"
+                value={times.start_time}
+                placeholder="Enter the name of role"
+              />
+            </div>
+            <div>
+              <Label>
+                End Time (24 hour format)
+                <span className="text-error-500">*</span>
+              </Label>
+              <Input
+                name="end_time"
+                onChange={handleTimeChange}
+                type="time"
+                value={times.end_time}
+                placeholder="Enter the description of role"
+              />
+            </div>
+            <Button
+              className="bg-purple-800 hover:bg-purple-900"
+              onClick={handleCreateSlotButton}
+            >
+              Create
+            </Button>
+          </div>
+        )}
+      </BigModal>
+
+
+      {/* Delete Modal  */}
+
+      <DeleteModal isOpen={isDeleteModalOpen} onClose={() => setisDeleteModalOpen(false)} text="room" isLoading={deleteLactationRoomMutation.isPending} onConfirm={handleDeleteRoleButton} />
+   
     </div>
   );
 }
