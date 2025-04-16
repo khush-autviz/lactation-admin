@@ -290,6 +290,7 @@ export default function TenantUsers() {
               {mode}
             </h3>
             <Button
+            size="sm"
               className="bg-orange-600 font-semibold px-10 hover:bg-orange-700"
               onClick={() =>
                 mode === "Create" ? setmode("Records") : setmode("Create")

@@ -12,7 +12,13 @@ import {
 } from "../../api/tenants";
 import { toast } from "sonner";
 import PageBreadcrumb from "../common/PageBreadCrumb";
-import { ErrorIcon, PencilIcon, TrashBinIcon } from "../../icons";
+import {
+  CheckCircleIcon,
+  CheckLineIcon,
+  ErrorIcon,
+  PencilIcon,
+  TrashBinIcon,
+} from "../../icons";
 import {
   Table,
   TableBody,
@@ -22,11 +28,19 @@ import {
 } from "../ui/table";
 import { Loader } from "../ui/loader";
 import { Modal } from "../ui/modal";
-import { getRolesPermissions } from "../../api/Lactation";
+import {
+  assignPermissions,
+  getAllPermissions,
+  getRolesPermissions,
+  unassignPermissions,
+} from "../../api/Lactation";
+import Badge from "../ui/badge/Badge";
 
 export default function Roles() {
   const [mode, setmode] = useState("Records");
+  const [permissionIds, setPermissionIds] = useState<number[]>([]);
   const [isModalOpen, setisModalOpen] = useState(false);
+  const [isPermissionsModalOpen, setisPermissionsModalOpen] = useState(false);
   const [isDeleteModalOpen, setisDeleteModalOpen] = useState(false);
   const [selectedRoleId, setselectedRoleId] = useState<number | null>(null);
   const [formData, setformData] = useState({
@@ -58,7 +72,15 @@ export default function Roles() {
   });
 
   // fetches roles permissions
-  const { data: permissions, refetch: permissionsRefetch } = useQuery({
+  const { data: allPermissions, refetch: allPermissionsRefetch } = useQuery({
+    queryKey: ["allPermissions"],
+    queryFn: getAllPermissions,
+    staleTime: 5 * 60 * 1000,
+    refetchOnWindowFocus: false,
+  });
+
+  // fetches roles permissions
+  const { data: rolePermissions, refetch: permissionsRefetch } = useQuery({
     queryKey: ["permissions"],
     queryFn: getRolesPermissions,
     staleTime: 5 * 60 * 1000,
@@ -123,6 +145,44 @@ export default function Roles() {
     },
   });
 
+  //assign permissions mutatation
+  const assignPermissionMutation = useMutation({
+    mutationFn: assignPermissions,
+    onSuccess: (response) => {
+      queryClient.invalidateQueries({ queryKey: ["permissions"] });
+      console.log("assign permisison sucess", response);
+      // setformData({ name: "", description: "" });
+      toast.success("Assigned Permission!");
+    },
+    onError: (error: any) => {
+      console.log("assign perm error", error);
+      toast.error(
+        error?.response?.data?.message ||
+          error?.message ||
+          "Something went wrong"
+      );
+    },
+  });
+
+  //unassign permissions mutatation
+  const unassignPermissionMutation = useMutation({
+    mutationFn: unassignPermissions,
+    onSuccess: (response) => {
+      queryClient.invalidateQueries({ queryKey: ["permissions"] });
+      console.log("unassign permisison sucess", response);
+      // setformData({ name: "", description: "" });
+      toast.success("Unassigned Permission!");
+    },
+    onError: (error: any) => {
+      console.log("unassigned perm error", error);
+      toast.error(
+        error?.response?.data?.message ||
+          error?.message ||
+          "Something went wrong"
+      );
+    },
+  });
+
   // create role button
   const handleCreateRoleButton = () => {
     if (formData.name === "" || formData.description === "")
@@ -150,10 +210,37 @@ export default function Roles() {
     } else return toast.error("Something went wrong"); // no role id is selected
   };
 
-  //edit pencil button
+  // assign permissions button
+  const handleAssignPermissions = (id: any) => {
+    // console.log(permissionIds);
+    
+    if (selectedRoleId) {
+      assignPermissionMutation.mutateAsync({
+        role_id: selectedRoleId,
+        permission_ids: [id],
+      });
+    }
+  };
+
+  // unassign permissions button
+  const handleUnassignPermissions = (id: any) => {
+    if (selectedRoleId) {
+      unassignPermissionMutation.mutateAsync({
+        role_id: selectedRoleId,
+        permission_ids: [id],
+      });
+    }
+  };
+
+  //edit pencil info button
   const handleEditButton = (id: any) => {
     setselectedRoleId(id);
     setisModalOpen(true);
+  };
+
+  const handleEditPermissionsButton = (id: any) => {
+    setselectedRoleId(id);
+    setisPermissionsModalOpen(true);
   };
 
   // to fetch a single role
@@ -171,16 +258,19 @@ export default function Roles() {
     }
   }, [selectedRoleId]);
 
-  console.log("tenantrole", tenantsRole);
+  // console.log("tenantrole", tenantsRole);
 
-  console.log("permissions", permissions);
+  // console.log("role permissions", rolePermissions);
+
+  // console.log("all permissions", allPermissions);
 
   return (
     <div>
       <PageBreadcrumb pageTitle="Roles" />
-      {createRoleMutation.isPending && deleteRoleMutation.isPending && (
-        <Loader />
-      )}
+      {(createRoleMutation.isPending ||
+        deleteRoleMutation.isPending ||
+        unassignPermissionMutation.isPending ||
+        assignPermissionMutation.isPending) && <Loader />}
       <div className=" rounded-2xl border border-gray-200 bg-white px-5 py-7 dark:border-gray-800 dark:bg-white/[0.03] xl:px-10 xl:py-12">
         <div className=" w-full ">
           <div className="flex justify-between items-center mb-5">
@@ -188,6 +278,7 @@ export default function Roles() {
               {mode}
             </h3>
             <Button
+              size="sm"
               className="bg-orange-600 font-semibold px-10 hover:bg-orange-700"
               onClick={() =>
                 mode === "Create" ? setmode("Records") : setmode("Create")
@@ -258,6 +349,12 @@ export default function Roles() {
                       isHeader
                       className="px-5 py-3 font-medium text-gray-800 text-start text-theme-md dark:text-gray-400"
                     >
+                      Grant access
+                    </TableCell>
+                    <TableCell
+                      isHeader
+                      className="px-5 py-3 font-medium text-gray-800 text-start text-theme-md dark:text-gray-400"
+                    >
                       Actions
                     </TableCell>
                   </TableRow>
@@ -274,25 +371,51 @@ export default function Roles() {
                         {item.description ?? "No Description"}
                       </TableCell>
                       <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
-                        {permissions?.data.data.map(
-                          (role: any, roleIndex: any) => {
-                            console.log(item.id);
-                            if (item.id === role.id) {
-                              // console.log(role.id);
-
-                              // console.log(role.permissions.length);
-                              if (role.permissions.length === 0)
-                                return "No Perm";
-                              role.permissions.map(
-                                (perm: any, permIndex: any) => {
-                                  return perm;
+                        {item.name === "admin" ? (
+                          <Badge size="sm" color="success">
+                            admin
+                          </Badge>
+                        ) : (
+                          rolePermissions?.data.data.map(
+                            (role: any, roleIndex: any) => {
+                              if (item.id === role.id) {
+                                if (role.permissions.length === 0) {
+                                  return (
+                                    <Badge
+                                      key={roleIndex}
+                                      size="sm"
+                                      color="error"
+                                    >
+                                      No Permissions
+                                    </Badge>
+                                  );
                                 }
-                              );
+                                return role.permissions.map(
+                                  (perm: any, permIndex: any) => {
+                                    return (
+                                      <Badge
+                                        key={permIndex}
+                                        size="sm"
+                                        color="info"
+                                      >
+                                        {perm.codename}
+                                      </Badge>
+                                    );
+                                  }
+                                );
+                              }
                             }
-                          }
+                          )
                         )}
                       </TableCell>
-                      <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
+                      <TableCell className="px-4 py-3 text-gray-500 text-center text-theme-sm dark:text-gray-400">
+                        <button
+                          onClick={() => handleEditPermissionsButton(item.id)}
+                        >
+                          <PencilIcon className="text-green-400 hover:text-green-500 dark:hover:text-green-300 size-5" />
+                        </button>
+                      </TableCell>
+                      <TableCell className="px-4 py-3 text-gray-500 text-center text-theme-sm dark:text-gray-400">
                         <button onClick={() => handleEditButton(item.id)}>
                           <PencilIcon className="text-blue-300 hover:text-blue-500 dark:hover:text-blue-300 size-5" />
                         </button>
@@ -388,6 +511,153 @@ export default function Roles() {
               </Button>
             </div>
           </div>
+        </div>
+      </Modal>
+
+      {/* Permissions modal */}
+
+      <Modal
+        isOpen={isPermissionsModalOpen}
+        onClose={() => setisPermissionsModalOpen(false)}
+        showCloseButton={false}
+        className="max-w-lg p-6 shadow-xl"
+      >
+        <div className="flex justify-between items-center mb-5">
+          <h2 className="text-xl text-gray-800 font-semibold">
+            Edit Permissions
+          </h2>
+        </div>
+        <div>
+          {/* permissions allowed */}
+          <h3 className="text-gray-500 text-lg font-semibold mb-3">Assigned</h3>
+          <div className="mb-3">
+            {rolePermissions?.data.data.map((role: any, roleIndex: any) => {
+              if (role.id === selectedRoleId) {
+                console.log("perm dsnkjv", role);
+
+                if (role.permissions.length === 0) {
+                  return (
+                    <Badge key={roleIndex} size="sm" color="error">
+                      No Permissions
+                    </Badge>
+                  );
+                }
+                return role.permissions.map((perm: any, permIndex: any) => {
+                  console.log(perm.codename);
+
+                  return (
+                    <div className="flex justify-between items-center mb-2">
+                      <Badge key={permIndex} size="md" color="info">
+                        {perm.codename}
+                      </Badge>
+                      <button
+                        onClick={() => handleUnassignPermissions(perm.id)}
+                      >
+                        <TrashBinIcon className="text-red-500 hover:text-red-600 dark:hover:text-red-500 size-5" />
+                      </button>
+                    </div>
+                  );
+                });
+              }
+            })}
+          </div>
+
+          {/* set permissions */}
+          <h3 className="text-gray-500 text-lg font-semibold mb-3">
+            Set Permissions
+          </h3>
+
+          {/* <div className="mb-3">
+            {allPermissions?.data.map((item: any, index: any) => {
+              {rolePermissions?.data.data.map((role: any, roleIndex: any) => {
+                if (role.id === selectedRoleId) {
+  
+                  if (role.permissions.length === 0) {
+                    return (
+                      <Badge key={roleIndex} size="sm" color="error">
+                        No Permissions
+                      </Badge>
+                    );
+                  }
+                  return role.permissions.map((perm: any, permIndex: any) => {
+                    if (item.id !== perm.id) {
+                      
+                      
+                      return (
+                        <div className="flex justify-between items-center mb-2">
+                        <Badge key={permIndex} size="md" color="info">
+                          {perm.codename}
+                        </Badge>
+                        <button
+                          onClick={() => handleUnassignPermissions(perm.id)}
+                          >
+                          <TrashBinIcon className="text-red-500 hover:text-red-600 dark:hover:text-red-500 size-5" />
+                        </button>
+                      </div>
+                    );
+                  });
+                }
+                }
+            }
+          </div> */}
+          <div className="mb-3">
+            {allPermissions?.data.map((item: any, index: number) =>
+              rolePermissions?.data.data.map((role: any, roleIndex: number) => {
+                if (role.id === selectedRoleId) {
+                  if (role.permissions.length === 0) {
+                    return (
+                      <div
+                        key={`perm-${index}`}
+                        className="flex justify-between items-center mb-2"
+                      >
+                        <Badge size="md" color="info">
+                          {item.codename}
+                        </Badge>
+                        <button
+                          onClick={() => handleAssignPermissions(item.id)}
+                        >
+                          <CheckLineIcon className="text-green-500 hover:text-green-600 dark:hover:text-green-500 size-5" />
+                        </button>
+                      </div>
+                    );
+                  }
+
+                  return role.permissions.map(
+                    (perm: any, permIndex: number) => {
+                      
+                      // setPermissionIds([...permissionIds,perm.id])
+                      if (item.id !== perm.id) {
+                        return (
+                          <div
+                            key={`perm-${permIndex}`}
+                            className="flex justify-between items-center mb-2"
+                          >
+                            <Badge size="md" color="info">
+                              {item.codename}
+                            </Badge>
+                            <button
+                              onClick={() => handleAssignPermissions(item.id)}
+                            >
+                              <CheckLineIcon className="text-green-500 hover:text-green-600 dark:hover:text-green-500 size-5" />
+                            </button>
+                          </div>
+                        );
+                      }
+                      return null;
+                    }
+                  );
+                }
+                return null;
+              })
+            )}
+          </div>
+
+          <Button
+            className="bg-green-600 hover:bg-green-700"
+            onClick={handleEditRoleButton}
+          >
+            Update
+          </Button>
         </div>
       </Modal>
     </div>

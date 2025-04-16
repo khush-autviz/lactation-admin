@@ -222,6 +222,7 @@ export default function LactationRooms() {
               {mode}
             </h3>
             <Button
+              size="sm"
               className="bg-orange-600 font-semibold px-10 hover:bg-orange-700"
               onClick={() =>
                 mode === "Create" ? setmode("Records") : setmode("Create")
@@ -448,7 +449,12 @@ export default function LactationRooms() {
                           {item.amenities}
                         </TableCell>
                         <TableCell className="px-5 py-4 text-gray-500 text-start text-theme-sm dark:text-gray-400">
-                          {item.is_available ? "True" : "False"}
+                        <Badge
+                            size="sm"
+                            color={item.is_available ? "success" : "warning"}
+                          >
+                            {item.is_available ? "Available" : "Unavailable"}
+                          </Badge>
                         </TableCell>
                         <TableCell className="px-5 py-4 text-gray-500 text-start text-theme-sm dark:text-gray-400">
                           <button onClick={() => handleEditButton(item.id)}>
