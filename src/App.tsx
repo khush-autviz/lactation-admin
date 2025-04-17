@@ -28,6 +28,7 @@ import Roles from "./components/userManagement/Roles";
 import TenantUsers from "./components/userManagement/TenantUsers";
 import VenueTypes from "./components/userManagement/VenueTypes";
 import LactationRooms from "./components/userManagement/LactationRooms";
+import RoomAnalytics from "./components/userManagement/RoomAnalytics";
 
 export default function App() {
 
@@ -57,6 +58,7 @@ export default function App() {
             <Route path="/roles" element={<Roles />} />
             <Route path="/venue-types" element={<VenueTypes />} />
             <Route path="/lactation-rooms" element={<LactationRooms />} />
+            <Route path="/room-analytics" element={<RoomAnalytics />} />
 
             {/* Forms */}
             <Route path="/form-elements" element={<FormElements />} />

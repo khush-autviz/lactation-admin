@@ -6,6 +6,7 @@ import {
   BoxCubeIcon,
   CalenderIcon,
   ChevronDownIcon,
+  FileIcon,
   GridIcon,
   GroupIcon,
   HorizontaLDots,
@@ -56,6 +57,11 @@ const navItems: NavItem[] = [
     icon: <CalenderIcon />,
     name: "Lactation Rooms",
     path: "/lactation-rooms",
+  },
+  {
+    icon: <FileIcon />,
+    name: "Room Analytics",
+    path: "/room-analytics",
   },
   // {
   //   name: "Create",

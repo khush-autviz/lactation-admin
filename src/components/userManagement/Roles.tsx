@@ -14,7 +14,6 @@ import { toast } from "sonner";
 import PageBreadcrumb from "../common/PageBreadCrumb";
 import {
   CheckLineIcon,
-  ErrorIcon,
   PencilIcon,
   TrashBinIcon,
 } from "../../icons";
@@ -72,7 +71,7 @@ export default function Roles() {
   });
 
   // fetches roles permissions
-  const { data: allPermissions, refetch: allPermissionsRefetch } = useQuery({
+  const { data: allPermissions} = useQuery({
     queryKey: ["allPermissions"],
     queryFn: getAllPermissions,
     staleTime: 5 * 60 * 1000,
@@ -548,8 +547,8 @@ export default function Roles() {
             })}
           </div>
 
-          <h3 className="text-gray-500 text-lg font-semibold mb-3">
-            Set Permissions
+          <h3 className="text-gray-500 text-lg font-semibold mt-5 mb-3">
+            Unassigned
           </h3>
 
           <div className="mb-3">

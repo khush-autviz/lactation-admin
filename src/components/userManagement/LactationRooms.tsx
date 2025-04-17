@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import PageBreadcrumb from "../common/PageBreadCrumb";
-import { CalenderIcon, ErrorIcon, PencilIcon, TrashBinIcon } from "../../icons";
+import { CalenderIcon, PencilIcon, TrashBinIcon } from "../../icons";
 import Label from "../form/Label";
 import Input from "../form/input/InputField";
 import { toast } from "sonner";
@@ -32,10 +32,11 @@ import DeleteModal from "../ui/DeleteModal";
 export default function LactationRooms() {
   const [isModalOpen, setisModalOpen] = useState(false);
   const [isDeleteModalOpen, setisDeleteModalOpen] = useState(false);
+  const [isSlotDeleteModalOpen, setisSlotDeleteModalOpen] = useState(false);
+  const [slotId, setslotId] = useState()
   const [slotsArray, setslotsArray] = useState([]);
   const [isSlotModalOpen, setisSlotModalOpen] = useState(false);
   const [selectedRoleId, setselectedRoleId] = useState();
-  const [slotId, setslotId] = useState();
   const [mode, setmode] = useState("Records");
   const [slotMode, setslotMode] = useState("Records");
   const queryClient = useQueryClient();
@@ -227,8 +228,8 @@ export default function LactationRooms() {
       // queryClient.invalidateQueries({ queryKey: ["lactationRooms"] });
       console.log("delete slot sucess", response);
       // setformData({ name: "", description: "" });
-      toast.success("Slot Deleted!");
-      setisDeleteModalOpen(false);
+      toast.success("Slot Deleted!!!");
+      setisSlotDeleteModalOpen(false);
       if (selectedRoleId) {
         fetchSlotsOfRoom(selectedRoleId);
       }
@@ -314,13 +315,19 @@ export default function LactationRooms() {
 
   // delete slot button
   const handleSlotDeleteButton = (id: any) => {
-    if (selectedRoleId) {
+setisSlotDeleteModalOpen(true)
+setslotId(id)
+  };
+
+  // delete slot 
+  const handleSlotDelete = () => {
+    if (selectedRoleId && slotId) {
       deleteSlotMutation.mutateAsync({
-        id,
+        id : slotId,
         payload: { lactation_room: selectedRoleId },
       });
     }
-  };
+  }
 
   // to fetch a single room info
   useEffect(() => {
@@ -356,33 +363,12 @@ export default function LactationRooms() {
     }
   }, [selectedRoleId]);
 
-  // to fetch slots of specific room
-  // useEffect(() => {
-  //   if (selectedRoleId) {
-  //     queryClient
-  //       .fetchQuery({
-  //         queryKey: ["slotsOfSpecificRoom", selectedRoleId],
-  //         queryFn: () => getSlotsOfSpecificRoom(selectedRoleId),
-  //       })
-  //       .then((response) => {
-  //         console.log("sel role", selectedRoleId);
-  //         setslotsArray(response.data.data.slots);
-
-  //         console.log("specific room slot", response);
-
-  //         // const { name, description } = response.data;
-  //         // seteditFormData({ name, description });
-  //       });
-  //   }
-  // }, [selectedRoleId]);
-
+  // to update slots while creating and deleting
   useEffect(() => {
     if (selectedRoleId) {
       fetchSlotsOfRoom(selectedRoleId);
     }
   }, [selectedRoleId]);
-
-  console.log("slots array", slotsArray);
 
   return (
     <div>
@@ -809,6 +795,16 @@ export default function LactationRooms() {
         {/* </form> */}
       </Modal>
 
+      {/* Room Delete Modal  */}
+
+      <DeleteModal
+        isOpen={isDeleteModalOpen}
+        onClose={() => setisDeleteModalOpen(false)}
+        text="room"
+        isLoading={deleteLactationRoomMutation.isPending}
+        onConfirm={handleDeleteRoleButton}
+      />
+
       {/* Slot Modal */}
 
       <BigModal
@@ -978,15 +974,15 @@ export default function LactationRooms() {
         )}
       </BigModal>
 
-      {/* Room Delete Modal  */}
-
+      {/* Delete Slot Modal */}
       <DeleteModal
-        isOpen={isDeleteModalOpen}
-        onClose={() => setisDeleteModalOpen(false)}
-        text="room"
-        isLoading={deleteLactationRoomMutation.isPending}
-        onConfirm={handleDeleteRoleButton}
+        isOpen={isSlotDeleteModalOpen}
+        onClose={() => setisSlotDeleteModalOpen(false)}
+        text="slot"
+        isLoading={deleteSlotMutation.isPending}
+        onConfirm={handleSlotDelete}
       />
+
     </div>
   );
 }

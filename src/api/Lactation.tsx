@@ -60,3 +60,8 @@ export const deleteSlot = async (param: Number,data: any) => {
     const response = await axios.delete(`/lactation/room-slots/${param}/`, data)
     return response
 }
+
+export const getRoomAnalytics = async (param: Number) => {
+    const response = await axios.get(`/lactation/room/${param}/room_analytics/`)
+    return response
+}
