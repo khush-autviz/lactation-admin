@@ -8,6 +8,7 @@ import { useAuthStore } from "../../store/authStore";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { getVenueTypes, registerCompany } from "../../api/createOrganisation";
 import { toast } from "sonner";
+import { Loader } from "../ui/loader";
 
 export default function SignUpForm() {
   const navigate = useNavigate();
@@ -102,6 +103,7 @@ export default function SignUpForm() {
 
   return (
     <div className="flex flex-col flex-1 w-full overflow-y-auto lg:w-1/2 no-scrollbar">
+      {companyRegisterMutation.isPending && <Loader />}
       <div className="flex flex-col justify-center flex-1 w-full max-w-md mx-auto">
         <div>
           <div className="mb-5 sm:mb-4">

@@ -15,6 +15,9 @@ export default defineConfig({
       },
     }),
   ],
+  optimizeDeps: {
+    include: ['@mui/material', '@mui/x-date-pickers', 'dayjs'],
+  },
   server: {
     host: true,   // allow access from subdomains
     // allowedHosts: ['.lvh.me', 'localhost'],

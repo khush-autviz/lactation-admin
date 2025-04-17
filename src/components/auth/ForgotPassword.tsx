@@ -26,8 +26,6 @@ export default function ForgotPassword() {
 
   const navigate = useNavigate();
 
-  
-  
   //forgotpassword otp api
   const forgotPasswordOtpMutation = useMutation({
     mutationFn: forgotPasswordOtp,

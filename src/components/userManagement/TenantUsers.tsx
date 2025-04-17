@@ -48,9 +48,19 @@ export default function TenantUsers() {
     first_name: "",
     last_name: "",
     position_in_company: "",
-    role: '',
+    role: "",
     is_active: "",
   });
+
+  // handle mode change
+  const handleMode = () => {
+    if (mode === "Records") return setmode("Create");
+    else if (allTenants?.data?.data?.users.length === 0) {
+      return toast.error("No Records");
+    } else {
+      setmode("Records");
+    }
+  };
 
   //to fetch a single role
   const fetchSingleUserProfile = async (id: number) => {
@@ -58,7 +68,7 @@ export default function TenantUsers() {
       queryKey: ["singleTenantRole", id],
       queryFn: () => getSingleUserProfile(id),
     });
-  
+
     const {
       email,
       phone_number,
@@ -68,20 +78,19 @@ export default function TenantUsers() {
       role,
       is_active,
     } = response.data.data;
-  
+
     seteditFormData({
       email,
       phone_number,
       first_name,
       last_name,
       position_in_company,
-      role : role.id,
+      role: role.id,
       is_active,
     });
-  
+
     setisUserActive(is_active);
   };
-  
 
   //handle form changes
   const handleFormChange = (e: any) => {
@@ -96,11 +105,11 @@ export default function TenantUsers() {
   // handle Edit form changes
   const handleEditFormChange = (e: any) => {
     const { name, value } = e.target;
-  
+
     if (name === "phone_number" && !/^\d*$/.test(value)) {
       return; // skip if not digits
     }
-  
+
     seteditFormData((prev) => ({
       ...prev,
       [name]: value,
@@ -159,7 +168,7 @@ export default function TenantUsers() {
       queryClient.invalidateQueries({ queryKey: ["allTenants"] });
       console.log("create tenant user success", response);
       toast.success("Tenant Created!");
-      setmode('Records')
+      setmode("Records");
       setformData({
         email: "",
         first_name: "",
@@ -209,7 +218,7 @@ export default function TenantUsers() {
       // setformData({ name: "", description: "" });
       toast.success("Status Updated!");
       setisModalOpen(false);
-      setisUserActive(true)
+      setisUserActive(true);
     },
     onError: (error: any) => {
       console.log("status update error", error);
@@ -230,7 +239,7 @@ export default function TenantUsers() {
       // setformData({ name: "", description: "" });
       toast.success("Status Updated!");
       setisModalOpen(false);
-      setisUserActive(false)
+      setisUserActive(false);
     },
     onError: (error: any) => {
       console.log(" deactive status update error", error);
@@ -280,13 +289,19 @@ export default function TenantUsers() {
     }
   };
 
-
   // to enter info in the edit modal
   useEffect(() => {
     if (selectedRoleId) {
       fetchSingleUserProfile(selectedRoleId);
     }
   }, [selectedRoleId]);
+
+  // mode
+  useEffect(() => {
+    if (allTenants?.data?.data?.users.length === 0) {
+      setmode("Create");
+    }
+  }, [allTenants]);
 
   return (
     <div>
@@ -304,9 +319,10 @@ export default function TenantUsers() {
             <Button
               size="sm"
               className="bg-orange-600 font-semibold px-10 hover:bg-orange-700"
-              onClick={() =>
-                mode === "Create" ? setmode("Records") : setmode("Create")
-              }
+              // onClick={() =>
+              //   mode === "Create" ? setmode("Records") : setmode("Create")
+              // }
+              onClick={handleMode}
             >
               {mode === "Create" ? "Records" : "Create"}
             </Button>
@@ -598,7 +614,7 @@ export default function TenantUsers() {
                   placeholder="Enter the position"
                 />
               </div> */}
-              {/* email */}
+            {/* email */}
             {/* <div className="sm:col-span-1">
                 <Label>
                   Email<span className="text-error-500">*</span>

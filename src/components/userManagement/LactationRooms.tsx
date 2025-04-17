@@ -28,37 +28,59 @@ import { Modal } from "../ui/modal";
 import Button from "../ui/button/Button";
 import { BigModal } from "../ui/bigModal";
 import DeleteModal from "../ui/DeleteModal";
+import { TimePicker } from "antd";
+import dayjs, { Dayjs } from "dayjs";
 
 export default function LactationRooms() {
   const [isModalOpen, setisModalOpen] = useState(false);
   const [isDeleteModalOpen, setisDeleteModalOpen] = useState(false);
   const [isSlotDeleteModalOpen, setisSlotDeleteModalOpen] = useState(false);
-  const [slotId, setslotId] = useState()
+  const [slotId, setslotId] = useState();
   const [slotsArray, setslotsArray] = useState([]);
   const [isSlotModalOpen, setisSlotModalOpen] = useState(false);
   const [selectedRoleId, setselectedRoleId] = useState();
   const [mode, setmode] = useState("Records");
   const [slotMode, setslotMode] = useState("Records");
   const queryClient = useQueryClient();
+  const format = "HH:mm";
 
   const [times, setTimes] = useState({
-    start_time: "",
-    end_time: "",
+    start_time: '',
+    end_time: '',
   });
+  // const [times, setTimes] = useState({
+  //   start_time: dayjs("00:00", format),
+  //   end_time: dayjs("00:00", format),
+  // });
 
-  const handleTimeChange = (e: any) => {
-    const { name, value } = e.target;
+  // const handleTimeChange = (e: any) => {
+  //   const { name, value } = e.target;
 
-    // Validates full HH:mm format from 00:00 to 23:59
-    const isValid = /^([01]\d|2[0-3]):([0-5]\d)$/.test(value);
+  //   // Validates full HH:mm format from 00:00 to 23:59
+  //   const isValid = /^([01]\d|2[0-3]):([0-5]\d)$/.test(value);
 
-    if (isValid || value === "") {
-      setTimes((prev) => ({
-        ...prev,
-        [name]: value,
-      }));
-    }
+  //   if (isValid || value === "") {
+  //     setTimes((prev) => ({
+  //       ...prev,
+  //       [name]: value,
+  //     }));
+  //   }
+  // };
+
+  // const handleTimeChange = (value: dayjs.Dayjs | null, name: 'start_time' | 'end_time') => {
+  //   setTimes((prev) => ({
+  //     ...prev,
+  //     [name]: value || dayjs("00:00", format), // default to 00:00 if cleared
+  //   }));
+  // };
+  
+  const handleTimeChange = (value: dayjs.Dayjs | null, name: 'start_time' | 'end_time') => {
+    setTimes((prev) => ({
+      ...prev,
+      [name]: value ? value.format('HH:mm') : '', // store as string or empty
+    }));
   };
+  
 
   const [formData, setformData] = useState({
     name: "",
@@ -83,6 +105,16 @@ export default function LactationRooms() {
       total_capacity: 0,
     },
   });
+
+  // handle mode change
+  const handleMode = () => {
+    if (mode === "Records") return setmode("Create");
+    else if (lactationRooms?.data.data.length === 0) {
+      return toast.error("No Records");
+    } else {
+      setmode("Records");
+    }
+  };
 
   //handle form changes
   const handleFormChange = (e: any) => {
@@ -184,6 +216,7 @@ export default function LactationRooms() {
   const deleteLactationRoomMutation = useMutation({
     mutationFn: deleteLactationRoom,
     onSuccess: async () => {
+      queryClient.invalidateQueries({ queryKey: ["lactationRooms"] });
       toast.success("Room deleted successfully!");
       setisModalOpen(false);
       setisDeleteModalOpen(false);
@@ -303,7 +336,11 @@ export default function LactationRooms() {
   // create slot button
   const handleCreateSlotButton = () => {
     if (times.start_time === "" && times.end_time === "")
-      return toast.warning("Empty Fields!");
+    // if (
+    //   times.start_time.format('HH:mm') === '00:00' &&
+    //   times.end_time.format('HH:mm') === '00:00'
+    // )
+    return toast.warning("Empty Fields!");
 
     if (selectedRoleId) {
       createSlotsMutation.mutateAsync({
@@ -315,19 +352,19 @@ export default function LactationRooms() {
 
   // delete slot button
   const handleSlotDeleteButton = (id: any) => {
-setisSlotDeleteModalOpen(true)
-setslotId(id)
+    setisSlotDeleteModalOpen(true);
+    setslotId(id);
   };
 
-  // delete slot 
+  // delete slot
   const handleSlotDelete = () => {
     if (selectedRoleId && slotId) {
       deleteSlotMutation.mutateAsync({
-        id : slotId,
+        id: slotId,
         payload: { lactation_room: selectedRoleId },
       });
     }
-  }
+  };
 
   // to fetch a single room info
   useEffect(() => {
@@ -370,6 +407,16 @@ setslotId(id)
     }
   }, [selectedRoleId]);
 
+  // mode
+  useEffect(() => {
+    if (lactationRooms?.data.data.length === 0) {
+      setmode("Create");
+    }
+  }, [lactationRooms]);
+
+  console.log('timesss', times);
+  
+
   return (
     <div>
       <PageBreadcrumb pageTitle="Lactation Room" />
@@ -386,9 +433,7 @@ setslotId(id)
             <Button
               size="sm"
               className="bg-orange-600 font-semibold px-10 hover:bg-orange-700"
-              onClick={() =>
-                mode === "Create" ? setmode("Records") : setmode("Create")
-              }
+              onClick={handleMode}
             >
               {mode === "Create" ? "Records" : "Create"}
             </Button>
@@ -937,8 +982,8 @@ setslotId(id)
           </Table>
         )}
         {slotMode === "Create" && (
-          <div className="space-y-6">
-            <div>
+          <div className="space-y-6 min-h-[300px]">
+            {/* <div>
               <Label>
                 Start Time (24 hour format)
                 <span className="text-error-500">*</span>
@@ -963,7 +1008,36 @@ setslotId(id)
                 value={times.end_time}
                 placeholder="Enter the description of role"
               />
+            </div> */}
+
+            {/* time picker */}
+            <div className="flex justify-between">
+              <TimePicker
+                placeholder="start time"
+                // value={times.start_time}
+                onChange={(value) => handleTimeChange(value, 'start_time')}
+                format={format}
+                minuteStep={30}
+                use12Hours={false}
+                style={{ width: "30%" }}
+                getPopupContainer={(triggerNode) =>
+                  triggerNode.parentNode as HTMLElement
+                }
+              />
+              <TimePicker
+                placeholder="end time"
+                // value={times.end_time}
+                onChange={(value) => handleTimeChange(value, 'end_time')}
+                format={format}
+                use12Hours={false}
+                minuteStep={30}
+                style={{ width: "30%" }}
+                getPopupContainer={(triggerNode) =>
+                  triggerNode.parentNode as HTMLElement
+                }
+              />
             </div>
+
             <Button
               className="bg-purple-800 hover:bg-purple-900"
               onClick={handleCreateSlotButton}
@@ -982,7 +1056,6 @@ setslotId(id)
         isLoading={deleteSlotMutation.isPending}
         onConfirm={handleSlotDelete}
       />
-
     </div>
   );
 }

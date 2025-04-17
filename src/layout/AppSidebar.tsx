@@ -331,7 +331,8 @@ const AppSidebar: React.FC = () => {
     >
       <div
         className={`py-8 flex ${
-          !isExpanded && !isHovered ? "lg:justify-center" : "justify-start"
+          // !isExpanded && !isHovered ? "lg:justify-center" : "justify-start"
+          !isExpanded && !isHovered ? "lg:justify-center" : "justify-center"
         }`}
       >
         <Link to="/">
@@ -351,7 +352,14 @@ const AppSidebar: React.FC = () => {
                 width={150}
                 height={40}
               /> */}
-              <h1 className="text-2xl text-blue-500 font-bold">LACTATION</h1>
+              {/* <h1 className="text-2xl text-blue-500 font-bold">LACTATION</h1> */}
+               <img
+                className="dark:hidden"
+                src="/images/logo/junobie-logo.png"
+                alt="Logo"
+                width={100}
+                height={30}
+              />
             </>
           ) : (
             <img
