@@ -28,7 +28,7 @@ import Badge from "../ui/badge/Badge";
 
 export default function TenantUsers() {
   const [isModalOpen, setisModalOpen] = useState(false);
-  const [isUserActive, setisUserActive] = useState(null);
+  const [isUserActive, setisUserActive] = useState<any>();
   const [selectedRoleId, setselectedRoleId] = useState<number | null>(null);
   const [mode, setmode] = useState("Records");
   const queryClient = useQueryClient();
@@ -48,9 +48,40 @@ export default function TenantUsers() {
     first_name: "",
     last_name: "",
     position_in_company: "",
-    role: "",
+    role: '',
     is_active: "",
   });
+
+  //to fetch a single role
+  const fetchSingleUserProfile = async (id: number) => {
+    const response = await queryClient.fetchQuery({
+      queryKey: ["singleTenantRole", id],
+      queryFn: () => getSingleUserProfile(id),
+    });
+  
+    const {
+      email,
+      phone_number,
+      first_name,
+      last_name,
+      position_in_company,
+      role,
+      is_active,
+    } = response.data.data;
+  
+    seteditFormData({
+      email,
+      phone_number,
+      first_name,
+      last_name,
+      position_in_company,
+      role : role.id,
+      is_active,
+    });
+  
+    setisUserActive(is_active);
+  };
+  
 
   //handle form changes
   const handleFormChange = (e: any) => {
@@ -65,11 +96,15 @@ export default function TenantUsers() {
   // handle Edit form changes
   const handleEditFormChange = (e: any) => {
     const { name, value } = e.target;
-
+  
     if (name === "phone_number" && !/^\d*$/.test(value)) {
       return; // skip if not digits
     }
-    seteditFormData((prev) => ({ ...prev, [name]: value }));
+  
+    seteditFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
   };
 
   // register button
@@ -121,9 +156,10 @@ export default function TenantUsers() {
   const createTenantMutation = useMutation({
     mutationFn: createTenantUser,
     onSuccess: (response) => {
-      queryClient.invalidateQueries({ queryKey: ["AllTenants"] });
+      queryClient.invalidateQueries({ queryKey: ["allTenants"] });
       console.log("create tenant user success", response);
       toast.success("Tenant Created!");
+      setmode('Records')
       setformData({
         email: "",
         first_name: "",
@@ -173,6 +209,7 @@ export default function TenantUsers() {
       // setformData({ name: "", description: "" });
       toast.success("Status Updated!");
       setisModalOpen(false);
+      setisUserActive(true)
     },
     onError: (error: any) => {
       console.log("status update error", error);
@@ -193,6 +230,7 @@ export default function TenantUsers() {
       // setformData({ name: "", description: "" });
       toast.success("Status Updated!");
       setisModalOpen(false);
+      setisUserActive(false)
     },
     onError: (error: any) => {
       console.log(" deactive status update error", error);
@@ -242,37 +280,11 @@ export default function TenantUsers() {
     }
   };
 
-  // to fetch a single role
+
+  // to enter info in the edit modal
   useEffect(() => {
     if (selectedRoleId) {
-      queryClient
-        .fetchQuery({
-          queryKey: ["singleTenantRole", selectedRoleId],
-          queryFn: () => getSingleUserProfile(selectedRoleId),
-        })
-        .then((response) => {
-          console.log("user single", response);
-
-          const {
-            email,
-            phone_number,
-            first_name,
-            last_name,
-            position_in_company,
-            role,
-            is_active,
-          } = response.data.data;
-          seteditFormData({
-            email,
-            phone_number,
-            first_name,
-            last_name,
-            position_in_company,
-            role,
-            is_active,
-          });
-          setisUserActive(is_active);
-        });
+      fetchSingleUserProfile(selectedRoleId);
     }
   }, [selectedRoleId]);
 
@@ -290,7 +302,7 @@ export default function TenantUsers() {
               {mode}
             </h3>
             <Button
-            size="sm"
+              size="sm"
               className="bg-orange-600 font-semibold px-10 hover:bg-orange-700"
               onClick={() =>
                 mode === "Create" ? setmode("Records") : setmode("Create")
@@ -494,7 +506,7 @@ export default function TenantUsers() {
                               size="sm"
                               color={item.is_active ? "success" : "warning"}
                             >
-                              {item.is_active ? "Active" : "Deactive"}
+                              {item.is_active ? "Active" : "Inactive"}
                             </Badge>
                           </TableCell>
                           <TableCell className="px-5 py-4 text-gray-500 text-start text-theme-sm dark:text-gray-400">
@@ -525,7 +537,7 @@ export default function TenantUsers() {
           <h2 className="text-xl text-gray-800 font-semibold">Edit Tenant</h2>
           <button onClick={handleActiveStatus}>
             <Badge size="md" color={isUserActive ? "success" : "warning"}>
-              {isUserActive ? "Active" : "Deactive"}
+              {isUserActive ? "Active" : "Inactive"}
             </Badge>
           </button>
         </div>
@@ -559,9 +571,9 @@ export default function TenantUsers() {
                 />
               </div>
             </div>
-            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
-              {/* <!-- Contact number --> */}
-              <div className="sm:col-span-1">
+            {/* <div className="grid grid-cols-1 gap-5 sm:grid-cols-2"> */}
+            {/* <!-- Contact number --> */}
+            {/* <div className="sm:col-span-1">
                 <Label>
                   Contact Number<span className="text-error-500">*</span>
                 </Label>
@@ -572,8 +584,36 @@ export default function TenantUsers() {
                   onChange={handleEditFormChange}
                   placeholder="Enter the contact number"
                 />
-              </div>
-              {/* <!-- position --> */}
+              </div> */}
+            {/* <!-- position --> */}
+            {/* <div className="sm:col-span-1">
+                <Label>
+                  Position<span className="text-error-500">*</span>
+                </Label>
+                <Input
+                  type="text"
+                  name="position_in_company"
+                  value={editFormData.position_in_company}
+                  onChange={handleEditFormChange}
+                  placeholder="Enter the position"
+                />
+              </div> */}
+              {/* email */}
+            {/* <div className="sm:col-span-1">
+                <Label>
+                  Email<span className="text-error-500">*</span>
+                </Label>
+                <Input
+                  type="email"
+                  name="email"
+                  value={editFormData.email}
+                  onChange={handleEditFormChange}
+                  placeholder="Enter the email"
+                />
+              </div> */}
+            {/* </div> */}
+            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+              {/* <!-- Email --> */}
               <div className="sm:col-span-1">
                 <Label>
                   Position<span className="text-error-500">*</span>
@@ -586,10 +626,7 @@ export default function TenantUsers() {
                   placeholder="Enter the position"
                 />
               </div>
-            </div>
-            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
-              {/* <!-- Email --> */}
-              <div className="sm:col-span-1">
+              {/* <div className="sm:col-span-1">
                 <Label>
                   Email<span className="text-error-500">*</span>
                 </Label>
@@ -600,7 +637,7 @@ export default function TenantUsers() {
                   onChange={handleEditFormChange}
                   placeholder="Enter the email"
                 />
-              </div>
+              </div> */}
               {/* <!-- role --> */}
               <div className="sm:col-span-1">
                 <Label>

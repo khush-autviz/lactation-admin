@@ -1,16 +1,16 @@
 import axios from '../lib/axios'
 
 export const forgotPasswordMail = async (data:any) => {
-    const response = await axios.post('/public/forgot-password/', data)
+    const response = await axios.post('/tenant/forgot-password/', data)
     return response
 }
 
 export const forgotPasswordOtp = async (data:any) => {
-    const response = await axios.post('/public/verify-reset-otp/', data)
+    const response = await axios.post('/tenant/verify-reset-otp/', data)
     return response
 }
 export const resetPassword = async (data:any) => {
-    const response = await axios.post('/public/reset-password/', data)
+    const response = await axios.post('/tenant/reset-password/', data)
     return response
 }
 

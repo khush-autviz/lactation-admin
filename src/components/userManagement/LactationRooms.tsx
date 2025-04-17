@@ -17,6 +17,7 @@ import {
   createLactationRoom,
   createSlots,
   deleteLactationRoom,
+  deleteSlot,
   EditLactationRoom,
   getLactationRoom,
   getSingleLactationRoom,
@@ -34,6 +35,7 @@ export default function LactationRooms() {
   const [slotsArray, setslotsArray] = useState([]);
   const [isSlotModalOpen, setisSlotModalOpen] = useState(false);
   const [selectedRoleId, setselectedRoleId] = useState();
+  const [slotId, setslotId] = useState();
   const [mode, setmode] = useState("Records");
   const [slotMode, setslotMode] = useState("Records");
   const queryClient = useQueryClient();
@@ -122,6 +124,21 @@ export default function LactationRooms() {
     refetchOnWindowFocus: true,
   });
 
+  // fetch slots of specific rooms
+  const fetchSlotsOfRoom = async (roleId: number) => {
+    try {
+      const response = await queryClient.fetchQuery({
+        queryKey: ["slotsOfSpecificRoom", roleId],
+        queryFn: () => getSlotsOfSpecificRoom(roleId),
+      });
+
+      setslotsArray(response.data.data.slots);
+      console.log("Fetched slots:", response);
+    } catch (error) {
+      console.error("Error fetching room slots", error);
+    }
+  };
+
   // create lactation room mutation
   const createLactationRoomMutation = useMutation({
     mutationFn: createLactationRoom,
@@ -129,6 +146,7 @@ export default function LactationRooms() {
       queryClient.invalidateQueries({ queryKey: ["lactationRooms"] });
       console.log("create tenant user success", response);
       toast.success("Lactation Room Created!");
+      setmode("Records");
     },
     onError: (error: any) => {
       console.log("create lactation room error", error);
@@ -183,19 +201,40 @@ export default function LactationRooms() {
   const createSlotsMutation = useMutation({
     mutationFn: createSlots,
     onSuccess: (response) => {
-      // queryClient.invalidateQueries({ queryKey: ["slotsOfSpecificRoom"] });
-      queryClient.invalidateQueries({
-        queryKey: ["slotsOfSpecificRoom", selectedRoleId],
-      });
-      queryClient.refetchQueries({
-        queryKey: ["slotsOfSpecificRoom", selectedRoleId],
-      });
       console.log("create slot success", response);
       toast.success("Slot Created!");
+
       setslotMode("Records");
+      if (selectedRoleId) {
+        fetchSlotsOfRoom(selectedRoleId);
+      }
     },
     onError: (error: any) => {
       console.log("create slot error", error);
+      toast.error(
+        error?.response?.data?.message ||
+          error?.message ||
+          "Something went wrong"
+      );
+    },
+  });
+
+  // delete slot mutation
+  const deleteSlotMutation = useMutation({
+    mutationFn: ({ id, payload }: { id: number; payload: any }) =>
+      deleteSlot(id, payload),
+    onSuccess: (response) => {
+      // queryClient.invalidateQueries({ queryKey: ["lactationRooms"] });
+      console.log("delete slot sucess", response);
+      // setformData({ name: "", description: "" });
+      toast.success("Slot Deleted!");
+      setisDeleteModalOpen(false);
+      if (selectedRoleId) {
+        fetchSlotsOfRoom(selectedRoleId);
+      }
+    },
+    onError: (error: any) => {
+      console.log("delete slot error", error);
       toast.error(
         error?.response?.data?.message ||
           error?.message ||
@@ -246,7 +285,7 @@ export default function LactationRooms() {
     if (selectedRoleId) {
       deleteLactationRoomMutation.mutateAsync(selectedRoleId);
     } else return toast.error("Something went wrong"); // no role id is selected
-  }
+  };
 
   // edit pencil button
   const handleEditButton = (id: any) => {
@@ -274,9 +313,14 @@ export default function LactationRooms() {
   };
 
   // delete slot button
-  const handleSlotDeleteButton = (id: Number) => {
-
-  }
+  const handleSlotDeleteButton = (id: any) => {
+    if (selectedRoleId) {
+      deleteSlotMutation.mutateAsync({
+        id,
+        payload: { lactation_room: selectedRoleId },
+      });
+    }
+  };
 
   // to fetch a single room info
   useEffect(() => {
@@ -313,22 +357,28 @@ export default function LactationRooms() {
   }, [selectedRoleId]);
 
   // to fetch slots of specific room
+  // useEffect(() => {
+  //   if (selectedRoleId) {
+  //     queryClient
+  //       .fetchQuery({
+  //         queryKey: ["slotsOfSpecificRoom", selectedRoleId],
+  //         queryFn: () => getSlotsOfSpecificRoom(selectedRoleId),
+  //       })
+  //       .then((response) => {
+  //         console.log("sel role", selectedRoleId);
+  //         setslotsArray(response.data.data.slots);
+
+  //         console.log("specific room slot", response);
+
+  //         // const { name, description } = response.data;
+  //         // seteditFormData({ name, description });
+  //       });
+  //   }
+  // }, [selectedRoleId]);
+
   useEffect(() => {
     if (selectedRoleId) {
-      queryClient
-        .fetchQuery({
-          queryKey: ["slotsOfSpecificRoom", selectedRoleId],
-          queryFn: () => getSlotsOfSpecificRoom(selectedRoleId),
-        })
-        .then((response) => {
-          console.log("sel role", selectedRoleId);
-          setslotsArray(response.data.data.slots);
-
-          console.log("specific room slot", response);
-
-          // const { name, description } = response.data;
-          // seteditFormData({ name, description });
-        });
+      fetchSlotsOfRoom(selectedRoleId);
     }
   }, [selectedRoleId]);
 
@@ -338,7 +388,9 @@ export default function LactationRooms() {
     <div>
       <PageBreadcrumb pageTitle="Lactation Room" />
       {(createLactationRoomMutation.isPending ||
-        editLactationRoomMutation.isPending || deleteLactationRoomMutation.isPending) && <Loader />}
+        editLactationRoomMutation.isPending ||
+        deleteLactationRoomMutation.isPending ||
+        deleteSlotMutation.isPending) && <Loader />}
       <div className=" rounded-2xl border border-gray-200 bg-white px-5 py-7 dark:border-gray-800 dark:bg-white/[0.03] xl:px-10 ">
         <div className=" w-full ">
           <div className="mb-5 flex justify-between items-center">
@@ -807,7 +859,7 @@ export default function LactationRooms() {
                   isHeader
                   className="px-5 py-3 font-medium text-gray-600 text-start text-theme-md dark:text-gray-400"
                 >
-                  Filled
+                  Full
                 </TableCell>
                 <TableCell
                   isHeader
@@ -861,7 +913,7 @@ export default function LactationRooms() {
                   <TableCell className="px-5 py-4 text-gray-500 text-start text-theme-sm dark:text-gray-400">
                     <Badge
                       size="sm"
-                      color={item.is_available ? "success" : "warning"}
+                      color={item.is_fully_booked ? "success" : "warning"}
                     >
                       {item.is_fully_booked ? "Full" : "No"}
                     </Badge>
@@ -926,11 +978,15 @@ export default function LactationRooms() {
         )}
       </BigModal>
 
+      {/* Room Delete Modal  */}
 
-      {/* Delete Modal  */}
-
-      <DeleteModal isOpen={isDeleteModalOpen} onClose={() => setisDeleteModalOpen(false)} text="room" isLoading={deleteLactationRoomMutation.isPending} onConfirm={handleDeleteRoleButton} />
-   
+      <DeleteModal
+        isOpen={isDeleteModalOpen}
+        onClose={() => setisDeleteModalOpen(false)}
+        text="room"
+        isLoading={deleteLactationRoomMutation.isPending}
+        onConfirm={handleDeleteRoleButton}
+      />
     </div>
   );
 }

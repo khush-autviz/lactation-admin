@@ -90,10 +90,12 @@ export default function Roles() {
   // creates tenant roles mutation
   const createRoleMutation = useMutation({
     mutationFn: createTenantRole,
-    onSuccess: (response) => {
+    onSuccess: async (response) => {
       queryClient.invalidateQueries({ queryKey: ["tenantRoles"] });
       console.log("create role sucess", response);
       setformData({ name: "", description: "" });
+      setmode("Records");
+      await permissionsRefetch();
       toast.success("Role Created!");
     },
     onError: (error: any) => {
@@ -402,7 +404,7 @@ export default function Roles() {
                                 return role.permissions.map(
                                   (perm: any, permIndex: any) => {
                                     return (
-                                      <div className="mb-2"> 
+                                      <div className="mb-2">
                                         <Badge
                                           key={permIndex}
                                           size="sm"
@@ -529,9 +531,11 @@ export default function Roles() {
                       key={permIndex}
                       className="flex justify-between items-center mb-2"
                     >
-                      <Badge size="md" color="info">
-                        {perm.codename}
-                      </Badge>
+                      <div className="w-1/2">
+                        <Badge size="md" color="info">
+                          {perm.codename}
+                        </Badge>
+                      </div>
                       <button
                         onClick={() => handleUnassignPermissions(perm.id)}
                       >
@@ -578,9 +582,11 @@ export default function Roles() {
                     key={`perm-${index}`}
                     className="flex justify-between items-center mb-2"
                   >
-                    <Badge size="md" color="info">
-                      {item.codename}
-                    </Badge>
+                    <div className="w-1/2">
+                      <Badge size="md" color="info">
+                        {item.codename}
+                      </Badge>
+                    </div>
                     <button onClick={() => handleAssignPermissions(item.id)}>
                       <CheckLineIcon className="text-green-500 hover:text-green-600 dark:hover:text-green-500 size-5" />
                     </button>

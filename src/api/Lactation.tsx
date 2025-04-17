@@ -55,3 +55,8 @@ export const createSlots = async (data: any) => {
     const response = await axios.post(`/lactation/room-slots/`, data)
     return response
 }
+
+export const deleteSlot = async (param: Number,data: any) => {
+    const response = await axios.delete(`/lactation/room-slots/${param}/`, data)
+    return response
+}

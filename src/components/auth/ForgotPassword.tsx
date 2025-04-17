@@ -13,7 +13,7 @@ import ComponentCard from "../common/ComponentCard";
 import { Loader } from "../ui/loader";
 
 export default function ForgotPassword() {
-  const [isOtpVerified, setIsOtpVerified] = useState(true);
+  const [isOtpVerified, setIsOtpVerified] = useState(false);
   const [otp, setOtp] = useState("");
   const [resetPasswordValue, setResetPasswordValue] = useState({
     newPassword: "",
