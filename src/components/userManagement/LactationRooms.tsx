@@ -432,7 +432,7 @@ export default function LactationRooms() {
             </h3>
             <Button
               size="sm"
-              className="bg-orange-600 font-semibold px-10 hover:bg-orange-700"
+              className="bg-[#2CBDCB] font-semibold px-10 hover:bg-[#2cbdcb]"
               onClick={handleMode}
             >
               {mode === "Create" ? "Records" : "Create"}
@@ -831,7 +831,7 @@ export default function LactationRooms() {
           </div>
           {/* <!-- Button --> */}
           <Button
-            className="bg-green-600 hover:bg-green-700"
+            className="bg-pink-700 hover:bg-pink-800"
             onClick={handleEditRoleButton}
           >
             Update
@@ -862,7 +862,7 @@ export default function LactationRooms() {
           <h2 className="text-xl text-gray-800 font-semibold ">{slotMode}</h2>
           <Button
             size="sm"
-            className="bg-green-600 font-semibold px-10 hover:bg-green-700"
+            className="bg-brand-500 font-semibold px-10 hover:bg-brand-600"
             onClick={() =>
               slotMode === "Create"
                 ? setslotMode("Records")
@@ -982,7 +982,7 @@ export default function LactationRooms() {
           </Table>
         )}
         {slotMode === "Create" && (
-          <div className="space-y-6 min-h-[300px]">
+          <div className="space-y-6 min-h-[120px]">
             {/* <div>
               <Label>
                 Start Time (24 hour format)
@@ -1011,7 +1011,7 @@ export default function LactationRooms() {
             </div> */}
 
             {/* time picker */}
-            <div className="flex justify-between">
+            <div className="flex justify-between timepicker-height">
               <TimePicker
                 placeholder="start time"
                 // value={times.start_time}
@@ -1019,7 +1019,7 @@ export default function LactationRooms() {
                 format={format}
                 minuteStep={30}
                 use12Hours={false}
-                style={{ width: "30%" }}
+                style={{ width: "48%" }}
                 getPopupContainer={(triggerNode) =>
                   triggerNode.parentNode as HTMLElement
                 }
@@ -1031,19 +1031,23 @@ export default function LactationRooms() {
                 format={format}
                 use12Hours={false}
                 minuteStep={30}
-                style={{ width: "30%" }}
+                style={{ width: "48%" }}
                 getPopupContainer={(triggerNode) =>
                   triggerNode.parentNode as HTMLElement
                 }
               />
             </div>
 
+<div className="flex justify-end items-center mt-10">
+
             <Button
-              className="bg-purple-800 hover:bg-purple-900"
+              className="bg-pink-700 hover:bg-pink-800"
+              size="sm"
               onClick={handleCreateSlotButton}
-            >
+              >
               Create
             </Button>
+              </div>
           </div>
         )}
       </BigModal>

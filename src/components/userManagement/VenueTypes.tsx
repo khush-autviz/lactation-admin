@@ -74,7 +74,8 @@ export default function VenueTypes() {
             <h3 className="font-semibold text-gray-800 text-theme-xl dark:text-white/90 sm:text-2xl">
               {mode}
             </h3>
-            <Button className="bg-orange-600 font-semibold px-10 hover:bg-orange-700" onClick={handleMode}>{mode === "Create"? "Records" : "Create"}</Button>
+            <Button className="bg-[f9fafb73]
+ font-semibold px-10 hover:bg-orange-700" onClick={handleMode}>{mode === "Create"? "Records" : "Create"}</Button>
           </div>
         </div>
         {mode === "Create" && (

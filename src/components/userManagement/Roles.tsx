@@ -57,6 +57,16 @@ export default function Roles() {
     setformData({ ...formData, [name]: value });
   };
 
+    // handle mode change
+    const handleMode = () => {
+      if (mode === "Records") return setmode("Create");
+      else if (tenantsRole?.data.length === 0) {
+        return toast.error("No Records");
+      } else {
+        setmode("Records");
+      }
+    };
+
   const handleEditChange = (e: any) => {
     const { name, value } = e.target;
     seteditFormData({ ...editFormData, [name]: value });
@@ -273,6 +283,13 @@ export default function Roles() {
     }
   }, [selectedRoleId, rolePermissions]);
 
+   // mode
+   useEffect(() => {
+    if (tenantsRole?.data.length === 0) {
+      setmode("Create");
+    }
+  }, [tenantsRole]);
+
   console.log("perm id", permissionIds);
 
   return (
@@ -290,10 +307,11 @@ export default function Roles() {
             </h3>
             <Button
               size="sm"
-              className="bg-orange-600 font-semibold px-10 hover:bg-orange-700"
-              onClick={() =>
-                mode === "Create" ? setmode("Records") : setmode("Create")
-              }
+              className="bg-[#2CBDCB] font-semibold px-10 hover:bg-[#2cbdcb]"
+              // onClick={() =>
+              //   mode === "Create" ? setmode("Records") : setmode("Create")
+              // }
+              onClick={handleMode}
             >
               {mode === "Create" ? "Records" : "Create"}
             </Button>
@@ -396,7 +414,7 @@ export default function Roles() {
                                       size="sm"
                                       color="error"
                                     >
-                                      No Permissions
+                                      no permissions
                                     </Badge>
                                   );
                                 }
@@ -481,7 +499,7 @@ export default function Roles() {
             />
           </div>
           <Button
-            className="bg-green-600 hover:bg-green-700"
+            className="bg-pink-700 hover:bg-pink-800"
             onClick={handleEditRoleButton}
           >
             Update
@@ -519,8 +537,8 @@ export default function Roles() {
               if (role.id === selectedRoleId) {
                 if (role.permissions.length === 0) {
                   return (
-                    <Badge key={roleIndex} size="sm" color="error">
-                      No Permissions
+                    <Badge key={roleIndex} size="md" color="error">
+                      no permissions
                     </Badge>
                   );
                 }
@@ -528,18 +546,19 @@ export default function Roles() {
                   return (
                     <div
                       key={permIndex}
-                      className="flex justify-between items-center mb-2"
+                      className="mb-2"
                     >
-                      <div className="w-1/2">
+                      <div className="flex justify-between w-full bg-[#f0f9ff]">
                         <Badge size="md" color="info">
                           {perm.codename}
                         </Badge>
-                      </div>
                       <button
+                      className="pe-2"
                         onClick={() => handleUnassignPermissions(perm.id)}
                       >
                         <TrashBinIcon className="text-red-500 hover:text-red-600 dark:hover:text-red-500 size-5" />
                       </button>
+                      </div>
                     </div>
                   );
                 });
@@ -570,7 +589,7 @@ export default function Roles() {
               if (unassignedPermissionsArray?.length === 0) {
                 return (
                   <Badge size="md" color="error">
-                    No Permissions
+                    no permissions
                   </Badge>
                 );
               }
@@ -579,16 +598,16 @@ export default function Roles() {
                 (item: any, index: number) => (
                   <div
                     key={`perm-${index}`}
-                    className="flex justify-between items-center mb-2"
+                    className="mb-2"
                   >
-                    <div className="w-1/2">
+                    <div className="flex justify-between w-full rounded-md bg-[#f0f9ff]">
                       <Badge size="md" color="info">
                         {item.codename}
                       </Badge>
-                    </div>
-                    <button onClick={() => handleAssignPermissions(item.id)}>
+                    <button className="pe-2" onClick={() => handleAssignPermissions(item.id)}>
                       <CheckLineIcon className="text-green-500 hover:text-green-600 dark:hover:text-green-500 size-5" />
                     </button>
+                    </div>
                   </div>
                 )
               );

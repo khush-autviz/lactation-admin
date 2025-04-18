@@ -16,9 +16,16 @@ export default function AuthLayout({
             {/* <!-- ===== Common Grid Shape Start ===== --> */}
             <GridShape />
             <div className="flex flex-col items-center max-w-xs">
-              <h1 className="text-center text-3xl text-gray-400 dark:text-white/60">
+              {/* <h1 className="text-center text-3xl text-gray-400 dark:text-white/60">
                 Lactation
-              </h1>
+              </h1> */}
+                           <img
+                // className="dark:hidden"
+                src="/images/logo/junobie-logo.png"
+                alt="Logo"
+                width={100}
+                height={30}
+              />
             </div>
           </div>
         </div>

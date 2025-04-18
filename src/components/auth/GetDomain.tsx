@@ -64,7 +64,7 @@ export default function GetDomain() {
       <h1 className="mb-2 font-semibold text-gray-800 text-title-sm dark:text-white/90 sm:text-title-md w-1/2">
         Find the Lactation URL of your company.
       </h1>
-      <div className=" rounded-2xl w-1/3 bg-white">
+      <div className=" rounded-2xl w-1/3 bg-white text-center">
         <ComponentCard
           title="Lactation"
           desc="Enter the email of the registered account."
@@ -80,7 +80,8 @@ export default function GetDomain() {
               />
               <Button
                 onClick={handleClick}
-                className="flex items-center justify-center w-full mb-8 mt-4 px-4 text-sm font-medium text-white transition rounded-lg bg-brand-500 shadow-theme-xs hover:bg-brand-600"
+                size="sm"
+                className="flex items-center justify-center w-full mb-4  px-4 text-sm font-medium text-white transition rounded-lg bg-brand-500 shadow-theme-xs hover:bg-brand-600"
                 disabled={getDomainMutation.isPending}
               >
                 Search
@@ -111,20 +112,20 @@ export default function GetDomain() {
                     </TableHeader>
                     <TableBody className="divide-y divide-gray-100 dark:divide-white/[0.05]">
                       {domain.map((item: any, index) => (
-                        <div
-                          key={index}
-                          onClick={() => handleDomain(item.domain)}
-                          className="cursor-pointer"
-                        >
-                          <TableRow>
+                        <TableRow >
                             <TableCell className="px-5 py-4 sm:px-6 text-start">
                               {item.company_name}
                             </TableCell>
                             <TableCell className="px-5 py-4 sm:px-6 font-semibold text-start text-purple-700">
+                            <div
+                              key={index}
+                              onClick={() => handleDomain(item.domain)}
+                              className="cursor-pointer"
+                            >
                               {item.domain}
+                        </div>
                             </TableCell>
                           </TableRow>
-                        </div>
                       ))}
                     </TableBody>
                   </Table>
@@ -138,7 +139,7 @@ export default function GetDomain() {
             </>
           )}
           <div>
-            <p className="text-md font-normal text-center text-gray-700 dark:text-gray-400 sm:text-start">
+            <p className="text-md font-normal text-center text-gray-700 dark:text-gray-400">
               Don't have a lactation account? {""}
               <Link
                 to="/signup"

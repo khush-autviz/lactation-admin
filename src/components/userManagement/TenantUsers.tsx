@@ -318,7 +318,7 @@ export default function TenantUsers() {
             </h3>
             <Button
               size="sm"
-              className="bg-orange-600 font-semibold px-10 hover:bg-orange-700"
+              className="bg-[#2CBDCB] font-semibold px-10 hover:bg-[#2cbdcb]"
               // onClick={() =>
               //   mode === "Create" ? setmode("Records") : setmode("Create")
               // }
@@ -688,7 +688,7 @@ export default function TenantUsers() {
             <button
               onClick={(e) => handleEditUserProfile(e)}
               disabled={editTenantUserMutation.isPending}
-              className="flex items-center justify-center w-1/4 px-4 py-3 mt-12 text-sm font-medium text-white transition rounded-lg bg-green-600 shadow-theme-xs hover:bg-green-700"
+              className="flex items-center justify-center w-1/4 px-4 py-3 mt-12 text-sm font-medium text-white transition rounded-lg bg-pink-700 shadow-theme-xs hover:bg-pink-800"
             >
               Update
             </button>
