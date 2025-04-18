@@ -134,7 +134,6 @@ export default function RoomAnalytics() {
             </div>
 
             <div className="space-y-6">
-              {/* <ComponentCard title="Bookings"> */}
               <RoomBarChart barData={barRoomData} />
               <div className=" flex">
                 {/* {pieData.cancel > 0 &&
@@ -156,7 +155,6 @@ export default function RoomAnalytics() {
                 {/* </>
                 )} */}
               </div>
-              {/* </ComponentCard> */}
             </div>
           </div>
         </div>

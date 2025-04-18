@@ -52,11 +52,12 @@ import { ReactComponent as ChatIcon } from "./chat.svg?react";
 import { ReactComponent as MoreDotIcon } from "./moredot.svg?react";
 import { ReactComponent as AlertHexaIcon } from "./alert-hexa.svg?react";
 import { ReactComponent as ErrorHexaIcon } from "./info-hexa.svg?react";
+import { ReactComponent as Plus2 } from "./plus2.svg?react";
 
 export {
   ErrorHexaIcon,
   AlertHexaIcon,
-  MoreDotIcon,
+  MoreDotIcon,  
   DownloadIcon,
   FileIcon,
   GridIcon,
@@ -108,4 +109,5 @@ export {
   HorizontaLDots,
   ChevronUpIcon,
   ChatIcon,
+  Plus2
 };

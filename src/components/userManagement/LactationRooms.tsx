@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import PageBreadcrumb from "../common/PageBreadCrumb";
-import { CalenderIcon, PencilIcon, TrashBinIcon } from "../../icons";
+import {  PencilIcon, Plus2, TrashBinIcon } from "../../icons";
 import Label from "../form/Label";
 import Input from "../form/input/InputField";
 import { toast } from "sonner";
@@ -663,7 +663,7 @@ export default function LactationRooms() {
                         </TableCell>
                         <TableCell className="px-4 py-3 text-gray-500 text-center text-theme-sm dark:text-gray-400">
                           <button onClick={() => handleSlotButton(item.id)}>
-                            <CalenderIcon className="text-green-400 hover:text-green-500 dark:hover:text-green-300 size-5" />
+                            <Plus2 className="text-green-400 hover:text-green-500 dark:hover:text-green-300 size-5" />
                           </button>
                         </TableCell>
                         <TableCell className="px-5 py-4 text-gray-500 text-start text-theme-sm dark:text-gray-400">

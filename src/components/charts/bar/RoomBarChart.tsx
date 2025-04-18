@@ -44,16 +44,22 @@ export default function RoomBarChart({ barData }: { barData: number[] }) {
       fontFamily: "Outfit",
     },
     yaxis: {
+      tickAmount: 5,
       labels: {
+        
         style: {
           fontSize: "15px",
           fontFamily: "Outfit",
           colors: "#333",
         },
+        formatter: function (val: number) {
+          return Number.isInteger(val) ? val.toString() : ""; // hide decimals
+        },
       },
       title: {
         text: undefined,
       },
+      floating: false
     },
     grid: {
       yaxis: {
